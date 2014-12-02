@@ -1,18 +1,26 @@
 \chapter{Introduction of Lua}
-Lua is an extension programming language. It is designed to support general procedural programming with data description facilities. As a embeddable scripting language, it is relatively small and has a concise syntax. However, it is also powerful, fast, and lightweight that makes it being used in different domains.
+% FIXME: This appears to come from "Lua - an extensible extension language"
+% Software: Practice & Experience 26 #6 (1996) 635–652.
+% Add a citation.
+Lua is an extension programming language. It is designed to support general procedural programming with data description facilities~\cite{aaa}. Since it is designed to be an embedded scripting language, it has a relatively concise syntax. However, it is also powerful, fast, and lightweight making it useful as a general purpose scripting language.
 
-What is more, as an extension language, Lua has no ``main" method or program. All it does is being used as an embedded function in its ``host". Therefore, host programs can invoke some functions to execute a portion of the Lua code. The scripts of Lua can be easily used when using C/C++. Also, Lua can use functions of C/C++ in its own code since it is implemented as a library, written in clean C\cite{CLC}, the common language that can be compiled by standard C of C++ compiler without any different observable behaviors.
+%What is more, as an extension language, Lua has no ``main" method or program. All it does is being used as an embedded function in its ``host". Therefore, host programs can invoke some functions to execute a portion of the Lua code. The scripts of Lua can be easily used when using C/C++. Also, Lua can use functions of C/C++ in its own code since it is implemented as a library, written in clean C\cite{CLC}, the common language that can be compiled by standard C of C++ compiler without any different observable behaviors.
 
-The compiler of Lua can be executed in almost all platforms and is also very small (less than 200k in common). The distribution includes a sample host program called Lua, which uses the Lua library to offer a complete, standalone Lua interpreter, for interactive or batch use. Nowadays, Lua has been used in many domains because of its benefits and we will talk about it by some instance in the following section.
+%The compiler of Lua can be executed in almost all platforms and is also very small (less than 200k in common). The distribution includes a sample host program called Lua, which uses the Lua library to offer a complete, standalone Lua interpreter, for interactive or batch use. Nowadays, Lua has been used in many domains because of its benefits and we will talk about it by some instance in the following section.
 
-Talking about the project, our core goal is to develop semantics for a minimal version of Lua. This semantics allows us to formally reason about properties of the Lua language without becoming needlessly mired in unimportant aspects of the full Lua language. In other words, we are attempting to remove much stuff and keep those very core things in Lua, for providing an easier way in case of researching in the future.
+Our core goal is to develop a formal semantics for a minimal version of Lua. This semantics allows us to formally reason about properties of the Lua language without becoming needlessly mired in unimportant aspects of the full Lua language. In other words, we are attempting to remove unnecessary syntactic clutter and keep the core features of Lua, facilitating future research into the language.
+
+%FIXME: Need more description about the core features here
 
 \section{Where do we use Lua}
+
+%FIXME: Add history
+
 Lua is often embedded in many applications to fulfill some simple and small tasks because of its qualities. Usually, Lua is used to do much extending work in massive programs, which would be hard to change. Besides, there are also many programs about security start to use Lua so far. The truth we want to talk is that Lua can be used in many programs in different domains, which in need of many specific extending works to make them flexible. 
 
 For instance, there are many user interface add-ons defined by Lua script in a very popular online game called The World of Warcraft\cite{wowLua}. These add-ons are commonly used for assisting players by adding some new simple functions in the game, such like timers, alerts, chat reminders, action automations and so on. In this massive game, each add-on that made by Lua is exquisite, and this obviously shows many qualities of Lua -- embedded, simple and lightweight.
 
-As an embeddablt programming language, Lua actually is embedded in many devices including cameras in Canon and keyboards in Logitech. It is also used for network security applications in Cisco\cite{CISCO}, user interface in Adobe Photoshop Lightroom and extensions and add-ons in MySQL Workbench.
+As an embeddable programming language, Lua actually is embedded in many devices including cameras in Canon and keyboards in Logitech. It is also used for network security applications in Cisco\cite{CISCO}, user interface in Adobe Photoshop Lightroom and extensions and add-ons in MySQL Workbench.
 
 Above all, Lua proves very useful and is becoming more popular since such simple and agile language is in the trend of programming. In addition, for its qualities, applications using Lua could have a good ability of extending and customizing.
 
