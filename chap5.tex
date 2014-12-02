@@ -1,0 +1,245 @@
+\newcommand{\desugar}[2]{{#1} & \xlongequal[]{def} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
+\chapter{Lua to Feather Weight Lua}
+
+We have introduced the full syntax and evaluation rules of FWLua in detail. As we mentioned before, there is a huge difference between full version of Lua and FWLua, since FWLua is much simpler than Lua. However, although FWLua is complete as an entity, we want it to work more like Lua with just remaining core work. In this chapter, we will mainly discuss how FWLua works as Lua by regarding syntactic desugaring as a bridge between FWLua and Lua. 
+
+There would be several important parts need to focus in the syntactic desugaring. First of all, getting variable would be taken into the consideration. Secondly, Lua allows many different ways representing variable update and declaration with different conditions and scopes, and we will merge them into the only syntax. We would also concern about functions because some unique qualities in functions. What is more, tables could be focused because of metamethods in metatables. In the next, we will discuss those parts in detail and give some examples about them.
+
+\section{Variable select}
+Once we are coding with a programming language, defining and getting variables would be usually used because it is more used for computations. Generally speaking, getting variables in a common programming language is a easy and straight forward action: users can just write a variable for getting its value. For example, the following expressions used in Lua would stand for ``getting a value'':
+\begin{flushleft}
+{\tt
+x\\
+t["x"]\\
+t.y\\
+}
+\end{flushleft}
+Also, global variable is equivalent to the variable in global table {\tt \_ENV}. Hence for, we can represent the first line of code as the variable name {\tt \_ENV["x"]} or {\tt \_ENV.x}.
+
+However, we don't use this simple syntax system in FWLua because of metatable. In other words, Lua will search other tables with the input key according to the metatable and metamethod in the current table, and this would be the reason why we build a default metatable and make the syntax of getting variable as a function called {\tt rawget()}. Also, this specific function can be used recursively, because every table we defined can be found finally in the global environment.
+
+Based on the syntax of FWLua, the code above can be treated as the following code in FWLua so far:
+\begin{flushleft}
+{\tt
+rawget("\_ENV","x") --raw get global variable\\
+rawget(rawget("\_ENV","t"),"x") --the first expression returns a register/address\\
+rawget(rawget("\_ENV","t"),"y") --the value can be constant, register and function\\
+}
+\end{flushleft}
+
+What is more, we cannot ignore the effect of metatable. There is a metamethod, as we mentioned, managing the behavior of indexing in tables. Therefore, the full desugaring rules, adding the effect of metatable, are shown by figure \ref{fig:Desugaring}.
+
+
+\section{Variable update \& declaration}
+Variable update and declaration would be two key procedures in a programming language. In these two procedures, one or more variables would be declared of updated in the global store. There are many ways defining these procedures in Lua, even including declaring multiple variables at the same time. Here we show each way of doing variable declaration and updating before we discuss about desugaring in them:
+
+\begin{flushleft}
+{\tt
+x = 11\\
+t = \{\}\\
+t["x"] = 62\\
+t.y = 63\\
+local f = "Hello"\\
+a,b,c,d = 1,2+3,4,5\\ 
+}
+\end{flushleft}
+According to the semantic of FWLua, there is only one evaluation rule about variable declaration and update, which we call it ``Table update''. In the condition, we have to transfer the above codes using the syntax of FWLua. Basically, the syntax of assignment statement is a function called {\tt rawset()} as we mentioned. In solving the desugaring issue, we need to add some conditions in the function so that it can implement functions in Lua completely, such as scope and metatable. For example, those code we gave above can be transferred like the following:
+
+\begin{flushleft}
+{\tt
+rawset("\_ENV", "x", 11)\\
+rawset("\_ENV", "t", \{\})\\
+rawset(rawget("\_ENV", "t"), "x", 62)\\
+rawset(rawget("\_ENV", "t"), "y", 63)\\
+}
+\end{flushleft}
+
+What is more, the desugared code could be more complex due to the introduction of metatables. We have also mentioned above that we have built a default metatable. By doing this, we let the variable assignement statements always check metamethod in metatable first to make sure if there is any hook being triggered. Also, figure \ref{fig:Desugaring} shows the desugaring rules for setting variables.
+
+\section{Functions}
+Before desugaring functions in Lua, we first figure out the places those are different between Lua and FWLua. Since functions in FWLua look more like lambda calculus, there is an obvious difference, which is that each function in FWLua always take one arguments as perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
+\begin{flushleft}
+{\tt
+function (x,y) return (x,y) end
+}
+\end{flushleft}
+and now it can be represented in FWLua by:
+\begin{flushleft}
+{\tt
+function (x) \\
+~~return \\
+~~~~function (y) \\
+~~~~~~return (x,y) \\
+~~~~end \\
+end \\
+}
+\end{flushleft}
+
+What is more, functions in Lua don't have to have a return statement, which means they might not return values as expressions do. Since there are only expressions in FWLua and all of them are returning values, we can make the return statement with reserved word ``{\tt return}'' as a key component in FWLua. According to full version of Lua, those which after the word ``return'' must return values since they must be expressions. However, this issue has been solved in FWLua with the syntax of {\tt rawset()}. Also, figure \ref{fig:Desugaring} gives the detail about functions.
+
+\section{Tables}
+Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate a new address in the global store. And we then can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
+
+To make it more concrete, the following code is from full version of Lua using table constructor:
+\begin{flushleft}
+{\tt
+table = \{x=1, y=2, z=5\}\\
+}
+\end{flushleft}
+In FWLua, we have to make it as some simple expressions just like:
+\begin{flushleft}
+{\tt
+rawset("\_ENV", "table", \{\}) --new allocation\\
+rawset(rawget("\_ENV", "table"), "x", 1)\\
+rawset(rawget("\_ENV", "table"), "y", 2)\\
+rawset(rawget("\_ENV", "table"), "z", 5)\\
+}
+\end{flushleft}
+
+What is more, we still have to concern about metatables and metamethods. In the above section, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Since our system has a default metatable, the syntactic desugaring from Lua to FWLua would also include them. Check the figure \ref{fig:Desugaring} for more detail about desugaring about tables.
+
+\section{Others}
+The figure also gives some other desugaring rules, they might not belong to any parts above, but they are all equally important for FWLua. First of all, we choose to desugar conditional statements and loop statements, since they are all playing key roles in a programming language for doing computations. Also, after introduced the system of lambda calculus, we have to also handle Boolean values including {\tt True} and {\tt False} by making them as a function. In addition, the sequence statements can be represented as some function applications. Since the symbol {\tt ;} is operational in Lua, it is necessary to make it into function. Finally, binary operators in Lua can also be redefined in the metatable and thus change the behaviors as we have mentioned. So there is a need for desugaring them from Lua to FWLua.
+\begin{figure}[P]
+\caption{Getting and setting variables}
+{\bf Getting Variables}
+\label{fig:getandset}
+\[
+\begin{array}{rclcl}
+\\
+\desugar{e}{{\tt \_ENV}[e]}
+\desugar{e.x}{e[``x"]}
+\\
+\desugar{
+     e_1[e_2]
+}{
+    {\lambda}e_1.{\lambda}e_2.\\
+    ~~{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\
+    ~~~~{\tt rawget}(e_1, e_2) ~\\
+    ~~{\tt else}\\
+    ~~~~{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index}~\\
+    ~~~~f(e_1,e_2)\\ 
+    ~~{\tt end}
+}
+\\
+\end{array}
+\]
+{\bf Setting variables}
+\[
+\begin{array}{rclcl}
+\desugar{
+     \overline{e_i}=\overline{e_j}
+}{   
+     \overline{e_i = e_j}
+}
+\desugar{
+     {\tt local}~x=e
+}{   
+  a.\_localscope.x = e;
+}
+\desugar{e_1.x=e_2}{e_1[``x"] = e_2}
+\\
+\desugar{
+     e_1[e_2]=e_3
+}{
+    {\lambda}e_1.{\lambda}e_2.{\lambda}e_3.\\
+    ~~{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\
+    ~~~~{\tt rawset}(e_1, e_2,e_3) ~\\
+    ~~{\tt else}\\
+    ~~~~{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex}~\\
+    ~~~~f(e_1,e_2,e_3)\\ 
+    ~~{\tt end}
+}
+\\
+\end{array}
+\]
+\end{figure}
+
+\begin{figure}[P]
+\caption{From Lua to FW Lua}
+{\bf Functions}
+\label{fig:Desugaring}
+\[
+\begin{array}{rclcl}
+\desugar{
+    \aFunction{a}{b}
+}{
+    {\tt function} ~a~ {\tt return} ~b~
+}
+\desugar{
+    {\tt function}~(x,y)~e_1~{\tt end}
+}{
+    \aFunction{x}{\aFunction{y}{e_1}}
+}
+\\
+\desugar{
+    {\tt function}~f(x,y)~e_1~{\tt end}
+}{
+    f = \{\}; f.\_localscope = \{\};\\
+    f.\_body = {\tt function}~(x,y)~e_1~{\tt end}
+}
+\desugar{f(e)}{(f)(e)}
+\desugar{f(e_1,e_2)}{((f)(e_1))(e_2)}
+\\
+\end{array}
+\]
+{\bf Tables}
+\label{fig:tables}
+\[
+\begin{array}{rclcl}
+\desugar{
+    t = \{\}
+}{
+   t = \{\}; t.\_metatable = {\tt default}; t.\_index = 0;\\
+}
+\desugar{
+    t = \{e_1=e_2\}
+}{
+   t = \{\}; t[e_1] = e_2
+}
+\desugar{
+    t = \{\overline{e_i = e_j}\}
+}{
+  t = \{\}; t[e_i]=e_j; t 
+}
+\\
+\desugar{
+    t = \{x\}
+}{
+   t = \{\};\\
+   {\tt while}~t[\_index] == {\tt nil~do} ~ \_index = \_index + 1~ {\tt end};\\
+   t[\_index] = x
+   
+}
+
+\\
+\end{array}
+\]
+
+{\bf Others}\[
+\begin{array}{rclcl}
+\desugar{
+    {\tt if}~e_1~{\tt then}~e_2~{\tt else}~e_3~{\tt end}
+}{
+    (((e_1)(\aFunction{d}{e_2}))(\aFunction{d}{e_3}))(\aFunction{x}{x})
+}
+\\
+\desugar{
+    {\tt while}~e_1~{\tt do}~e_2~{\tt end}
+}{
+    f =  {\tt if}~e_1~{\tt then}~e_2~{\tt else}~{\tt False}~{\tt end};\\
+    {\tt if}~e_1~{\tt then}~{\tt f}~{\tt else}~{\tt False}~{\tt end}
+}
+\desugar{\tt True}{\aFunction{x}{\aFunction{y}{x}}}
+\desugar{\tt False}{\aFunction{x}{\aFunction{y}{y}}}
+\desugar{e_1{\tt ;}~e_2}{(\aFunction{a}{e_2})(e_1)}
+\desugar{
+    e_1~ op ~e_2
+}{
+    f = a.\_metatable.({\tt translate})(op); f(e_1, e_2)
+    
+}
+\end{array}\]
+
+
+\end{figure}

@@ -1,0 +1,347 @@
+\chapter{Core works in FWLua}
+In the above chapters, we have emphatically introduced several primary parts in Lua. Expressions and statements would be simple to understand because they could be analyzed in the straight way, directly related to their syntax. However, there is still a big part in the project, which would be also very important and need to be further analyzed in the certain extension. In other words, because simply reducing syntax about statements and expression would not be so hard, the core work we mainly focus in the project is about some more essential stuff.
+
+Therefore, we are going to talk about functions and metatables, which are both the key element in Lua, in more detail in the chapter. Meanwhile, we will also give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
+
+
+\section{Functions}
+Functions, as we have mentioned above, would be used to complete a set of computations, and then return values or fulfill some tasks. Basically, compositions of a function are pretty standard: a function will take some arguments users already defined into its body thus form the closure body of the function. Later, this defined function now could take some values as perimeters when it is invoked for computation.
+
+Functions in Lua are also pretty standard and simple to understand. According to this, we can easily remove those syntactic sugars in full version of Lua and create a new unified syntax about functions in FWLua. However, there are still several concepts need to be concerned based on the principles of FWLua. We will introduce the syntax of functions in FWLua specifically in the next.
+
+Basically, there are some instances showing the code in the full version of Lua about functions. To define a function, each line of the following code can be used:
+\begin{flushleft}
+\tt function foo(x) x = x + 1 return x end --normal function definition\\
+\tt foo = function (x) x = x + 1 return x end --using anonymous function\\
+\end{flushleft}
+Basically, either of the codes above delivers the same task. Also, we can invoke this function by using function call as a statement like:
+\begin{flushleft}
+\tt foo(4); -- will result 5 according to the above \\
+\end{flushleft}
+In addition, functions in the full version of Lua provide multiple expressions in the function, both in defining arguments and returning values. For example:
+\begin{flushleft}
+\tt function add(x, y) \\
+\tt ~~local i = x + y;\\
+\tt ~~return i;\\
+\tt end\\
+\end{flushleft}
+and also:
+\begin{flushleft}
+\tt function inc(x, y) \\
+\tt ~~x = x + 1;\\
+\tt ~~y = y + 1;\\
+\tt ~~return (x,y);\\
+\tt end\\
+\end{flushleft}
+From the above, we can see that a function can both take more than one arguments and return multiple values at the same time.
+
+However, taking consideration to FWLua, the fact of multiple expressions might be unnecessary. It is because that we want to keep FWLua as simple and core we can. What is more, multiple expression can be represented in some way using desugaring and Lambda calculus and we will talk about them specifically also in this chapter.
+
+Based on the examples above, we then choose to use the syntax of anonymous functions as our primary function syntax in FWLua. Since we have already come up with the syntax of assignment statements, we will combine it with anonymous function definition to define a function with name within. Besides, we will restrict both the argument and return value in a function to only one for decreasing unnecessary work in building the syntax. Consequently, the syntax of functions in FWLua is sort of complete so far.
+
+However, we have also raised the issue against one special statement called ``return statements''. As we mentioned above, return statements cannot really be called statements. Although Lua allows it appear individually like statements, return statements can only appear as the last statement in a block, and that would be the reason why we need to treat it especially in the function. In solving this issue, we decide to make the reserved word {\tt return} as the tail in the function and will use {\tt return nil} instead of no return statement in the block.
+
+As the result, the syntax of function would be like the following:
+\begin{flushleft}
+\tt function x {\tt return} e {\tt end}
+\end{flushleft}
+In the syntax, {\tt x} represents the argument a function takes (only one allowed), and {\tt e} represents the expression. Functions in FWLua still allow multiple expressions in the body of function. But it would be better combining with the function in function. After complete the syntax of function, we can say that there would be many syntactic sugars in the full version of Lua now can be represented in FWLua using the function. We will talk about it in detail in the chapter 5. 
+
+Next, we will talk about some key factors related to the function in following sections. Along with these sections, we will mainly use some examples to make them easier to be comprehended.
+
+\subsection{Closures}
+Before talking about closures in Lua and FWLua, we will show some examples to help comprehending closures in functions.
+\begin{flushleft}
+{\tt x=42\\
+function foo()\\
+~~print(x)\\
+end\\
+function bar()\\
+~~local x=100\\
+~~foo()\\
+end\\
+bar()}
+\end{flushleft}
+In the above example, a local variable is hold in the function {\tt bar()}. Meanwhile, there is also a global variable as the same name in the program. Also we have another function {\tt foo()} and we will get the variable and print it in this function. Finally, we take the function {\tt foo()} as the nested function {\tt bar()}, and within it we print the only name of variable to testify if there is some scope in every function. And then we can see that the result of the program would return {\tt 42}.
+
+Basically in Lua, there is a special restriction for functions about the scope according to our research \ref{123}. The fact is that even nested functions in the function would have completely no right for accessing local variables in that function. Actually, this fact applies to any function in Lua. The purpose of briefly introducing closures in Lua is that FWLua may be too simple that it cannot provide closures like Lua. Therefore, we will mainly discuss about how to implement the full closure like Lua using syntactic desugaring in the chapter 5. 
+
+
+\subsection{Recursions}\label{sec:recursions}
+
+Recursion means that the function can call itself in its body. Basically, recursion would be used in solving problems those need to also be defined in them, for example, the factorial function. Here, we give an example about factorial in Lua using recursive function called {\tt factorial(n)}.
+\begin{flushleft}
+{\tt
+function factorial(n)\\
+~~if n == 0 then\\
+~~~~return 1;\\
+~~else\\
+~~~~return n * factorial(n-1);\\
+~~end\\
+end\\
+
+print(factorial(5)); --results 120\\
+}
+\end{flushleft}
+
+In the example, we can see that only defining the function {\tt factorial(n)} is not simply enough. For implementing the factorial, it must be called with different argument in the body of itself, and this would be the classic recursive function.
+
+According to the reference \ref{beginLua}, Lua uses a call stack to store local variables in one function, and thus implement recursive functions. Theoretically, when a function itself is called in its body, the interpreter will automatically treat it as just a local variable and will further finish it after the function is done. In other words, multiple calls to the same function can be active at the same time without the crashes reporting ``undefined'' in Lua.
+
+This quality in Lua is very helpful for us to give the further abstract syntax in FWLua about function, since functions in FWLua would be more like lambda calculus. Next, we will briefly introduce lambda calculus and a key factor for the recursion in lambda calculus called fixed combinatory.
+
+\subsection{Lambda calculus}
+Generally speaking, one of the reasons why we allow a function in FWLua only take one argument is because of lambda calculus. The method of lambda calculus is a formal algorithm representing computations base on functions. Function abstraction and function application are the two main parts in the syntax of lambda calculus. 
+
+There are several advantages using lambda calculus. One of the advantages is that lambda calculus is very clear for representing the computation using its own system of symbol, since this system is very easy to write and understand. In the very basic lambda calculus, the symbol `$\lambda$' means a function, and the letter appears after `$\lambda$' means the argument this function takes. Actually, these two letters form the basic called function. Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the perimeter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
+\begin{flushleft}
+\tt (function(x) return x end)(a)
+\end{flushleft}
+can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
+
+Therefore, it obviously proves the reason why we let only one argument in the function. However, functions with multiple arguments in Lua would be inevitable. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
+
+\newcommand{\abFunction}[2]{{\tt function} ~{#1}~{\tt return}~{#2}~{\tt end}}
+\newcommand{\semanticFullRaw}[4]{{#1},{#2} \Downarrow {#3},{#4}}
+\newcommand{\semanticFull}[4]{{#1},{#2} \Downarrow {#3}, {#4}}
+
+
+\section{Metatables and Metamethods}
+Despite of statements, expression and functions those we have given in FWLua, we now discuss about metatables and metamethods as the very core element in FWLua. As we know, metatables allow us to change behaviors against some undefined operations, and these operations even include some symbols those we think is absolutely fixed like ``+'' or ``-''. For instance, functions can be operated using ``+'' by redefining the specific metamethod in the metatable. 
+
+Also, metamethods in metatables can automatically invoke once the relative conditions are satisfied. In other word, the behaviors of tables and values can be further controlled to follow our new rules in the program by using metatables. That is the reason why metatables are indispensable in FWLua. We even think them as a connection between the full version of Lua and FWLua because they will possibly contribute a lot to desugaring.
+
+Same as Lua, there are totally two types of metatables we plan to put in FWLua: global metatable and table metatable. Basically, the default of these two tables will not be so different. We will use global metatable to control behaviors for values and put it as a reserved table in the global store, since all values in the full version of Lua only have one associated metatable. Also, we can predefine the table metatable, but it will only be available one a new table is created. This will match the truth that every table in Lua has its own metatable.
+
+Finally, there are two reserved functions need to mention: {\tt setmetatable()} and {\tt getmetatable()}. Just like their name, these two functions are used for setting and getting a matatable of a value/table. Actually we will use them commonly in the phase of transfer Lua to FWLua, obviously because that FWLua has much simpler syntax and structure than the full version of Lua. Lua only allows a table to be set as a metatable and need C code to manipulate the metatables using other types. However, we will skip studying this and only allow the former condition in FWLua.
+
+\subsection{Metamethods}
+We will mainly introduce metamethods in this section. In essence, metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence even are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. Therefore, one of the purposes about metamethod is to public this hidden function to users to let them change the basic of the programming language in a certain degree.
+
+Furthermore, there are 4 different kinds of metamethods in Lua: arithmetic, relational, library-defined and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the rest of two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not changing the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations based on our research \ref{luains}.
+
+Above all, figure \ref{fig:metatables and metamethods} introduces the metamethods those we think would play key roles in FWLua. One thing need to pay attention: library-defined metamethods may not be that necessary in FWLua since we don't think that it belongs to core work. Next, we will also show some instances for table-access metamethods since some of them would be very important for the further work.
+
+% -------------------------------[FW2.1][METATABLES]-------------------------------
+\begin{figure}[P]
+\caption{Matatable Event Types}
+{\bf Table-Access Metamethods}
+\label{fig:matatables}
+\[
+\begin{array}{rclcl}
+  {\tt \_\_index}(get) & :: & {table} ~\rightarrow ~ {string} ~\rightarrow ~ {value} \\
+  {\tt \_\_newindex}(set)   & :: &  {table} ~\rightarrow ~{string} ~\rightarrow ~{value} ~\rightarrow ~{\tt nil}\\
+\end{array}
+\]
+
+{\bf Arithmetic Metamethods}
+\[
+\begin{array}{rclcl}
+  {\tt \_\_add(+)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+  {\tt \_\_sub(-)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+  {\tt \_\_mul(*)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+  {\tt \_\_div(/)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+  {\tt \_\_mod(mod)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+  {\tt \_\_pow({\wedge})}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+\end{array}
+\]
+
+{\bf Relational Metamethods}
+\[
+\begin{array}{rclcl}
+  {\tt \_\_eq(==)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
+  {\tt \_\_ne(\sim=)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
+  {\tt \_\_lt(<)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+  {\tt \_\_le(<=)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+  {\tt \_\_gt(>)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+  {\tt \_\_ge(>=)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+\end{array}
+\]
+\end{figure}
+
+\newcommand{\aFunction}[2]{\lambda{#1}.{#2}}
+
+% -------------------------------[FW2.1][METAMETHODS]---------------------------
+
+\begin{figure}[P]
+\caption{Definitions of Functions and Events}
+{\bf Default Metatable}
+\label{fig:FW2.1metamethods}
+\[
+\begin{array}{rclcl}
+{\tt \aFunction{x}{e}} & \xlongequal[]{def}  & 
+          {\tt function} ~x~{\tt return}~e~{\tt end}\\
+
+  {\tt \_\_index}  & \xlongequal[]{def} & \aFunction{T}{\aFunction{s}{\tt nil}}\\
+  
+  {\tt \_\_newindex} & \xlongequal[]{def}  & \aFunction{T}{\aFunction{s}{\aFunction{v}{{\tt rawset}(T,s,v)}}}\\
+ {\tt \_\_add}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1+v_2)}} \\
+ {\tt \_\_sub}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1-v_2)}} \\
+ {\tt \_\_mul}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1*v_2)}} \\
+ {\tt \_\_div}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1/v_2)}} \\
+ {\tt \_\_mod}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1~{\tt mod}~v_2)}} \\
+ {\tt \_\_pow}   & \xlongequal[]{def}  & \aFunction{v_1}{\aFunction{v_2}{(v_1 \wedge v_2)}} \\
+         
+\end{array}
+\]
+\end{figure}
+
+
+
+
+\section{Syntax and Semantics in FWLua}\label{sec: syntax and semantic}
+As we mentioned above, expressions and statements are basic elements forming FWLua externally. What is more, we have just introduced the core part such as functions and metatables, which could form the internal work of FWLua. Therefore, we now will give the complete syntax of FWLua, concluding the function and metatables. In this section, we will specifically introduce the syntax in section \ref{sec: FWLUAsyntax} and the full version of semantic in section \ref{sec: FWLUAsemantic}.
+
+\subsection{Syntax}\label{sec: FWLUAsyntax}
+We have given some figures showing the syntax of expressions and statements separately, and have introduced them in detail before. What is more, integrating them would not be so hard now, since we have functions as a bridge. Originally, the reason we split them is because statements will not return any value after being evaluated, while expressions always return a value as results. Therefore, we will pretend that statements will always return a value just like expressions, and will treat it as a kind of ``cheating''. However, in solving this issue, we just make those values statements return sort of nonsense.
+
+By this meaning, the integration would be just a simple combination about expressions and statements. So far, the full syntax of Featherweight Lua is given by Figure \ref{fig:FW2Syx}. In this version of syntax, we can see that there are both old version expressions such like constants and binary operations, and statements. In the aspect of expression, what we remain the same would be register, constant and new allocation. We change the table select {\tt e\textsubscript{1}[e\textsubscript{2}]} into some raw function {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, which e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table. It is highly because there are some rules, or we can call them``hooks'', in the expressions of table select since we have introduced metatable. Talking about statements, a set of hooks also exists in the table assignment statements. So we just change the syntax of assignment statements during the integrating to also a raw function {\tt rawset(e\textsubscript{1},e\textsubscript{2},e\textsubscript{3})}, while e\textsubscript{1} also means the table, e\textsubscript{2} means the key and the e\textsubscript{3} means the value that we want to assign. 
+
+In addition, we add syntax of function finally, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. Also there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, which e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies. Since we have integrated statements and expressions, functions now is easy too add. In other words, we don't need to decide weather it belongs to statements or expression due to its task.
+
+One final thing to mention, there would not be any Boolean value in constants. Because functions are similar to lambda calculus, the value of true and false can be transferred to some specific functions based on the lambda calculus. The reference\cite{LC} has mainly talked about what these functions look like.
+
+
+\subsection{Evaluation Rules}\label{sec: FWLUAsemantic}
+Consequently, The full big-step semantic of Featherweight Lua (evaluation rules) shows by Figure \ref{fig:FW2.1Sem}. This semantic is totally based on the syntax we introduced above. In the semantic, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' means the basic store in the runtime of FWLua. Actually, it is a table mapping register and table. Since we have mentioned that table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``register''. Secondary, the variable ``table'' is the table like store but only maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
+
+In the basic evaluation rule, we can see that FWLua takes current expressions and store before evaluating and will return a value and manipulated store when it is done. Basically in Lua, expressions return values and most of statements change the store. Here we just pretend that all new expressions, including expressions and statements in Lua, will return a value and change the store. Next we will discuss every single rule in detail.
+
+{\bf FW-VALUE}: It takes the value and return it, just like nothing happen. We can get that values would be our final results. In other means, there is no need to change anything when the executer meets a fixed value since it is executing using some recursive functions. 
+
+{\bf FW-NEW}: The semantic NEW means allocating a new memory location in the store to a new table {\tt \{\}}. Therefore, an address has to be allocated when we meet the token of NEW. In addition, we add a checking phase to ensure that if the address we want to allocate is been occupied or not. Then, we will add this table to the store (register to table), with the key of new address, and return this address as the value.
+
+{\bf FW-RAWGET}: The evaluation rule of {\tt rawget()} could be pretty straight forward. Since we just treat getting variable as some function, we now have to evaluate the arguments in this function as the first step. After that, we will get the values about both key and table. The executer then will find the table in the store based on the name of table and thus find the value with the key in the table. Obviously this rule will return the value that users want to get and thus manipulate the store.
+
+{\bf FW-RAWSET}: {\tt rawset()} is part of similar as {\tt rawget()}: it will evaluate its 3 arguments in the body and return them as table, key and value at the first step and then attempt to find that table in the store as the second step. The difference is that the executer then will add the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as user needs: once the key in rawset function has already existed in the table, it will automatically update it.
+
+{\bf FW-BINOP}: There are 3 different evaluation rules bringing binary operations in FWLua: RAW, LEFT and RIGHT. The purpose we split binary operations to three is to implement prefix computations during a set of binary operations. For example, multiple and division operations will be always computed before augment and minor operations, and there are still many examples like this in binary operations. All in all, the concept of these rules is similar: it evaluates expressions on each side of operation symbol and then computes them using reserved functions in the metatable. Finally it returns the value and modifies the store. 
+
+{\bf FW-FUNC-CALL}: This rule evaluates a function application in FWLua. At the beginning, it evaluates the function name and returns the expression with format of function body. Then it evaluates the value this function applies. Finally, it will evaluate the function body with the substitution from arguments to values. 
+
+% ----------------------------[FW2.2][SYNTAX]-----------------------------
+\begin{figure}
+\caption{Full Syntax of Featherweight Lua}
+\label{fig:FW2Syx}
+\[
+  \begin{array}{llr}
+  \mydefhead{e ::=\qquad\qquad\qquad\qquad}{Expressions}
+  \mydefcase{a}{register}
+  \mydefcase{c}{constant}
+  \mydefcase{\{\}}{new allocation}
+  \mydefcase{{\tt rawget}(e_1,e_2)}{table select}
+  \mydefcase{{\tt rawset}(e_1,e_2,e_3)}{table update}
+  \mydefcase{e ~{\tt binop}~ e}{binary operation}
+  \mydefcase{\abFunction x e}{abstraction}
+  \mydefcase{(e)(e)}{function application}
+  \\
+  \\
+  \mydefhead{c ::=\qquad\qquad\qquad\qquad}{Constants}
+  \mydefcase{i}{integer}
+  \mydefcase{s}{string}
+  \mydefcase{nil}{nil value}
+  \\
+  \mydefhead{a \qquad\qquad\qquad\qquad}{Registers}
+  \mydefhead{x \qquad\qquad\qquad\qquad}{Variables}
+  \\
+    op ::= & + ~|~ - ~|~ * ~|~ / ~|~ .. ~|~ > ~|~ >= ~|~ < ~|~ <= ~|\quad& \mbox{\emph{Binary operators}} \\
+  \quad & ~ == ~|~ ~= ~|~ and ~|~ or &\\
+\end{array}
+\]
+\end{figure}
+
+
+
+
+
+% -------------------------------[FW2.1][SEMANTIC]--------------------------------
+\newcommand{\metaSemanticFull}[6]{{#1}, {#2}, {#3} \Downarrow {#4}, {#5}, {#6}}
+\newcommand{\ssrule}[3]{
+  \rel{#1} &
+  \frac{\strut\begin{array}{@{}c@{}} #2 \end{array}}
+       {\strut\begin{array}{@{}c@{}} #3 \end{array}}
+   \\~\\
+}
+\begin{figure}[P]
+\caption{Semantics: Featherweight Lua With Metatables and Metamethods}
+{\bf Runtime Syntax:}
+\label{fig:FW2.1Sem}
+\[
+\begin{array}{rclcl}
+  \sigma & \in & {Store} \quad  & = & \quad {register} ~\rightarrow ~{table} \\
+  T & \in & {Table} \quad  & = & \quad {string} ~\rightarrow ~{value} \\
+  f & \in & {Function} \quad & ::= & \quad function \\
+  v & \in & {Value} \quad & ::= & \quad constant~|~ register ~|~ f~ \\
+  x & \in & {Name} \quad & ::= & \quad string 
+  \\
+\end{array}
+\]
+
+{\bf Evaluation Rules:~~~ \fbox{$\semanticFull {e}{\sigma}{v}{\sigma'}$}} \\
+\[
+\begin{array}{r@{\qquad\qquad}c}
+\ssrule{FW-VALUE}{
+}{
+  \semanticFull {v}{\sigma} {v}{\sigma}
+}
+\ssrule{FW-NEW}{
+  a \notin dom(\sigma)\\
+  \sigma' = \sigma + (a := \{\})
+}{
+  \semanticFull {\{\}} {\sigma}   {a} {\sigma'}
+}
+
+\ssrule{FW-RAWGET}{
+  \semanticFull{e_1}  {\sigma}    {a}  {\sigma_1} \quad
+  \semanticFull{e_2}  {\sigma_1}    {s}  {\sigma'} \\
+  T = \sigma'(a)\quad
+  v = T(s)\\
+  
+}{
+  \semanticFull {{\tt rawget}(e_1,e_2)} {\sigma}   {v} {\sigma'}
+}
+\ssrule{FW-RAWSET}{
+  \semanticFull{e_1}{\sigma}{a}{\sigma_1} \quad
+  \semanticFull{e_2}{\sigma_1}{s}{\sigma_2} \quad
+  \semanticFull{e_3}{\sigma_2}{v}{\sigma_3} \\
+  T = \sigma_3[a] \quad
+  T' = T~+~(s := v) \\
+  \sigma' = \sigma_3[a:=T']
+}{
+  \semanticFull{{\tt rawset}(e_1,e_2,e_3)}{\sigma}{a}{\sigma'}
+}
+\ssrule{FW-BINOP-RAW}{
+  \semanticFull{e_1}{\sigma}{v_1}{\sigma_1} \quad
+  \semanticFull{e_2}{\sigma_1}{v_2}{\sigma'} \\
+  v = v_1 ~op~ v_2
+}{
+  \semanticFull{e_1 ~op~ e_2}{\sigma}{v}{\sigma'}
+}
+\ssrule{FW-BINOP-LEFT}{
+  \semanticFull{e_1}{\sigma}{T}{\sigma_1} \quad
+  \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
+  m = T[{\tt ``{\_}MT"}]\quad
+  f = m[{\tt translate}(op)]\\
+   \semanticFull{(f(T))(v_1)}  {\sigma_2}    {v_2} {\sigma'} \\
+}{
+  \semanticFull{e_1 ~op~ e_2}{\sigma}{v_2}{\sigma'}
+}
+\ssrule{FW-BINOP-RIGHT}{
+  \semanticFull{e_1}{\sigma}{v}{\sigma_1} \quad
+  \semanticFull{e_2}{\sigma_1}{T}{\sigma_2} \\
+  m = T[{\tt ``{\_}MT"}]\quad
+  f = m[{\tt translate}(op)]\\
+   \semanticFull{(f(v))(T)}  {\sigma_2}    {v} {\sigma'} \\
+}{
+  \semanticFull{e_1 ~op~ e_2}{\sigma}{v}{\sigma'}
+}
+\ssrule{FW-FUNC-CALL}{
+  \semanticFull{e_1}{\sigma}{{\tt function} ~x ~{\tt return}~e' ~{\tt end}}{\sigma_1} \\
+  \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
+  \semanticFull{e[x:=v_1]}{\sigma_2}{v}{\sigma'} 
+}{
+  \semanticFull{(e_1)(e_2)}{\sigma}{v}{\sigma'} 
+}
+\end{array}
+\]
+\end{figure}
