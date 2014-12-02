@@ -64,7 +64,7 @@ bar()}
 \end{flushleft}
 In the above example, a local variable is hold in the function {\tt bar()}. Meanwhile, there is also a global variable as the same name in the program. Also we have another function {\tt foo()} and we will get the variable and print it in this function. Finally, we take the function {\tt foo()} as the nested function {\tt bar()}, and within it we print the only name of variable to testify if there is some scope in every function. And then we can see that the result of the program would return {\tt 42}.
 
-Basically in Lua, there is a special restriction for functions about the scope according to our research \ref{123}. The fact is that even nested functions in the function would have completely no right for accessing local variables in that function. Actually, this fact applies to any function in Lua. The purpose of briefly introducing closures in Lua is that FWLua may be too simple that it cannot provide closures like Lua. Therefore, we will mainly discuss about how to implement the full closure like Lua using syntactic desugaring in the chapter 5. 
+Basically in Lua, there is a special restriction for functions about the scope according to our research \ref{LuaScoping}. The fact is that even nested functions in the function would have completely no right for accessing local variables in that function. Actually, this fact applies to any function in Lua. The purpose of briefly introducing closures in Lua is that FWLua may be too simple that it cannot provide closures like Lua. Therefore, we will mainly discuss about how to implement the full closure like Lua using syntactic desugaring in the chapter 5. 
 
 
 \subsection{Recursions}\label{sec:recursions}
@@ -86,7 +86,7 @@ print(factorial(5)); --results 120\\
 
 In the example, we can see that only defining the function {\tt factorial(n)} is not simply enough. For implementing the factorial, it must be called with different argument in the body of itself, and this would be the classic recursive function.
 
-According to the reference \ref{beginLua}, Lua uses a call stack to store local variables in one function, and thus implement recursive functions. Theoretically, when a function itself is called in its body, the interpreter will automatically treat it as just a local variable and will further finish it after the function is done. In other words, multiple calls to the same function can be active at the same time without the crashes reporting ``undefined'' in Lua.
+According to the reference\cite{begLua}, Lua uses a call stack to store local variables in one function, and thus implement recursive functions. Theoretically, when a function itself is called in its body, the interpreter will automatically treat it as just a local variable and will further finish it after the function is done. In other words, multiple calls to the same function can be active at the same time without the crashes reporting ``undefined'' in Lua.
 
 This quality in Lua is very helpful for us to give the further abstract syntax in FWLua about function, since functions in FWLua would be more like lambda calculus. Next, we will briefly introduce lambda calculus and a key factor for the recursion in lambda calculus called fixed combinatory.
 
@@ -118,7 +118,7 @@ Finally, there are two reserved functions need to mention: {\tt setmetatable()} 
 \subsection{Metamethods}
 We will mainly introduce metamethods in this section. In essence, metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence even are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. Therefore, one of the purposes about metamethod is to public this hidden function to users to let them change the basic of the programming language in a certain degree.
 
-Furthermore, there are 4 different kinds of metamethods in Lua: arithmetic, relational, library-defined and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the rest of two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not changing the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations based on our research \ref{luains}.
+Furthermore, there are 4 different kinds of metamethods in Lua: arithmetic, relational, library-defined and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the rest of two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not changing the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations based on our research \cite{PIL}.
 
 Above all, figure \ref{fig:metatables and metamethods} introduces the metamethods those we think would play key roles in FWLua. One thing need to pay attention: library-defined metamethods may not be that necessary in FWLua since we don't think that it belongs to core work. Next, we will also show some instances for table-access metamethods since some of them would be very important for the further work.
 
@@ -197,7 +197,9 @@ We have given some figures showing the syntax of expressions and statements sepa
 
 By this meaning, the integration would be just a simple combination about expressions and statements. So far, the full syntax of Featherweight Lua is given by Figure \ref{fig:FW2Syx}. In this version of syntax, we can see that there are both old version expressions such like constants and binary operations, and statements. In the aspect of expression, what we remain the same would be register, constant and new allocation. We change the table select {\tt e\textsubscript{1}[e\textsubscript{2}]} into some raw function {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, which e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table. It is highly because there are some rules, or we can call them``hooks'', in the expressions of table select since we have introduced metatable. Talking about statements, a set of hooks also exists in the table assignment statements. So we just change the syntax of assignment statements during the integrating to also a raw function {\tt rawset(e\textsubscript{1},e\textsubscript{2},e\textsubscript{3})}, while e\textsubscript{1} also means the table, e\textsubscript{2} means the key and the e\textsubscript{3} means the value that we want to assign. 
 
-In addition, we add syntax of function finally, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. Also there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, which e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies. Since we have integrated statements and expressions, functions now is easy too add. In other words, we don't need to decide weather it belongs to statements or expression due to its task.
+In addition, we add syntax of function finally, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. However, since the function is mostly like lambda calculus, we will use the symbol $\lambda$ for a simpler syntax represention to make it easier to read. In other words, the syntax ``{\tt $\lambda$x.e}'' means ``{\tt function x return e end}'' in FWLua. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. 
+
+Also, there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, which e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies. Since we have integrated statements and expressions, functions now is easy too add. In other words, we don't need to decide weather it belongs to statements or expression due to its task.
 
 One final thing to mention, there would not be any Boolean value in constants. Because functions are similar to lambda calculus, the value of true and false can be transferred to some specific functions based on the lambda calculus. The reference\cite{LC} has mainly talked about what these functions look like.
 
@@ -232,7 +234,7 @@ In the basic evaluation rule, we can see that FWLua takes current expressions an
   \mydefcase{{\tt rawget}(e_1,e_2)}{table select}
   \mydefcase{{\tt rawset}(e_1,e_2,e_3)}{table update}
   \mydefcase{e ~{\tt binop}~ e}{binary operation}
-  \mydefcase{\abFunction x e}{abstraction}
+  \mydefcase{\aFunction{x}{e}}{abstraction}
   \mydefcase{(e)(e)}{function application}
   \\
   \\
