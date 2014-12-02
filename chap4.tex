@@ -338,7 +338,7 @@ In the basic evaluation rule, we can see that FWLua takes current expressions an
   \semanticFull{e_1 ~op~ e_2}{\sigma}{v}{\sigma'}
 }
 \ssrule{FW-FUNC-CALL}{
-  \semanticFull{e_1}{\sigma}{{\tt function} ~x ~{\tt return}~e' ~{\tt end}}{\sigma_1} \\
+  \semanticFull{e_1}{\sigma}{\aFunction{x}{e}}{\sigma_1} \\
   \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
   \semanticFull{e[x:=v_1]}{\sigma_2}{v}{\sigma'} 
 }{
