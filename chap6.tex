@@ -18,8 +18,13 @@ There is also an intermediate tier that we call it ``Symbol Table''. This tier w
 
 Besides, we have mentioned that there has to be a component of desugaring in the interpreter because our target code is Lua instead of FWLua. This phase need to be executed at the beginning to translate inputs into FWLua code for the interpreter. 
 
-Above all, the structure of our FWLua interpreter shows in the figure\ref {fig:structure}. We will also introduce paradigm of each component in the following sections. Also, appendix A shows the detail in the code of interpreter.
-
+Above all, the structure of our FWLua interpreter shows in the figure \ref {fig:structure}. We will also introduce paradigm of each component in the following sections. Also, appendix A shows the detail in the code of interpreter.
+\begin{figure}
+\centering
+\caption{Structure of the interpreter}
+\label{fig:structure}
+\includegraphics[scale = 0.9]{Interpreter}
+\end{figure}
 \section{Desugaring in interpreter}
 Fortunately, there is a package named {\tt Text.ParserCombinators.Parsec} in Haskell, providing a set of functions for parsing tokens and thus building parsers. We will use this package to build the parser and ``desugarer''. Ref \ref{instrucHAS} shows the detail of this package.
 

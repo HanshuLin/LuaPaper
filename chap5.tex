@@ -162,17 +162,6 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \[
 \begin{array}{rclcl}
 \desugar{
-    \aFunction{a}{b}
-}{
-    {\tt function} ~a~ {\tt return} ~b~
-}
-\desugar{
-    {\tt function}~(x,y)~e_1~{\tt end}
-}{
-    \aFunction{x}{\aFunction{y}{e_1}}
-}
-\\
-\desugar{
     {\tt function}~f(x,y)~e_1~{\tt end}
 }{
     f = \{\}; f.\_localscope = \{\};\\
