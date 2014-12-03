@@ -169,9 +169,6 @@ Above all, figure \ref{fig:metatables and metamethods} introduces the metamethod
 \label{fig:FW2.1metamethods}
 \[
 \begin{array}{rclcl}
-{\tt \aFunction{x}{e}} & \xlongequal[]{def}  & 
-          {\tt function} ~x~{\tt return}~e~{\tt end}\\
-
   {\tt \_\_index}  & \xlongequal[]{def} & \aFunction{T}{\aFunction{s}{\tt nil}}\\
   
   {\tt \_\_newindex} & \xlongequal[]{def}  & \aFunction{T}{\aFunction{s}{\aFunction{v}{{\tt rawset}(T,s,v)}}}\\
