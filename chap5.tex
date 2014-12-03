@@ -324,11 +324,6 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugar{\tt True}{\aFunction{x}{\aFunction{y}{x}}}
 \desugar{\tt False}{\aFunction{x}{\aFunction{y}{y}}}
 \desugar{e_1{\tt ;}~e_2}{(\aFunction{a}{e_2})(e_1)}
-\desugar{
-    e_1~ op ~e_2
-}{
-    f = a.\_metatable.({\tt translate})(op); f(e_1, e_2)    
-}
 \end{array}\]
 
 
