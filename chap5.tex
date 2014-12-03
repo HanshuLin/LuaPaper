@@ -183,15 +183,15 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugarline{ \overline{t[\_index] = x_i; t.\_index = 0}}
 
 \desugar{{\tt while}~e_1~{\tt do}~e_2~{\tt end}}{
-    {\tt function}~f()
+    {\tt function}~f()~{\tt return}
 }
-\desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f~{\tt else}~{\tt False}~{\tt end};\\
+\desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f~{\tt else}~{\tt nil}~{\tt end}\\
 {\tt end};f()
 }
 \desugar{
     e_1~ op ~e_2
 }{
-    f = a.\_metatable.({\tt translate})(op); f(e_1, e_2)
+    f = a.\_metatable.{\tt translate}(op); f(e_1, e_2)
 }
 \end{array}\]
 \end{figure}
@@ -202,7 +202,7 @@ The figure also gives some other desugaring rules, they might not belong to any 
 
 
 
-
+%--------CAUTION: FOLLOWING IS THE COMMENT!-----------------------
 \begin{comment}
 \begin{figure}[P]
 \caption{Getting and setting variables}
@@ -317,9 +317,9 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugar{
     {\tt while}~e_1~{\tt do}~e_2~{\tt end}
 }{
-    f =  {\tt if}~e_1~{\tt then}~e_2~{\tt else}~{\tt False}~{\tt end};\\}
+    f =  {\tt if}~e_1~{\tt then}~e_2~{\tt else}~{\tt nil}~{\tt end};\\}
 \desugarline{
-    {\tt if}~e_1~{\tt then}~{\tt f}~{\tt else}~{\tt False}~{\tt end}
+    {\tt if}~e_1~{\tt then}~{\tt f}~{\tt else}~{\tt nil}~{\tt end}
 }
 \desugar{\tt True}{\aFunction{x}{\aFunction{y}{x}}}
 \desugar{\tt False}{\aFunction{x}{\aFunction{y}{y}}}
