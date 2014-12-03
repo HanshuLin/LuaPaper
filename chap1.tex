@@ -13,30 +13,28 @@ In our research on Lua~\cite{LRM}, we have identified several features as centra
 
 \section{History of Lua}
 At the beginning, there was a programming called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. In 1993, there were already some lightweight languages, but
-% FIXME: I'm not following what you mean by "bare of them"
-bare of them
-provides data description. Therefore, Lua was created without the need of type declaration to satisfy this requirement~\cite{EOL}.
+% FIXED: I'm not following what you mean by "bare of them"
+none of them provides data description. Therefore, Lua was created without the need of type declaration to satisfy this requirement~\cite{EOL}.
 
 With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes including the simplification of the semantics for table constructors,
-% FIXME: Are fallbacks a precursor to metatables, or another name for them?
-fallbacks (functions to change behaviors), and so on. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods, and developers using Lua 3 can create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, The {\tt for} loop statement was introduced in Lua.
+% FIXED: Are fallbacks a precursor to metatables, or another name for them?
+the concept of ``fallbacks''---a bunch of programmer defined functions which would be called whenever Lua does not know how to do next, and so on. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods, and developers using Lua 3 can create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, The {\tt for} loop statement was introduced in Lua. 
+% FIXED: fallbacks
+Also, fallbacks and tag methods were merged into metatables.
 
 \section{Where to use Lua}
 Lua is often embedded in many applications to fulfill some simple and small tasks because of its qualities. Usually, Lua is used to do add extensions in large applications that would be hard to change. Also, game developers are fond of using Lua~\cite{AIL}. Lua can be used in many programs in different domains that need extensions to make them flexible. 
 
-For instance, Lua is used to create user interface add-ons in the popular online game called The World of Warcraft~\cite{WLA}. These add-ons are commonly used for assisting players by adding some simple functionality in the game, such as timers, alerts, chat reminders, action automations, and so on.
+For instance, Lua is used to create user interface add-ons in the popular online game called The World of Warcraft~\cite{WLA}. These add-ons are commonly used for assisting players by adding some simple functionality in the game, such as timers, alerts, chat reminders, action automations, dashboards and so on. Based on add-ons website named Curse~\cite{WCU}, there have been more than 4600 different programs as add-ons used in the game.
 % FIXME: How many plugins are there for the World of Warcraft?  Be sure to cite a source for your numbers.
 
-% FIXME: Add citations for all of your examples, if possible.
-Lua is also embedded in many devices including Canon cameras and Logitech keyboards. It is also used for network security applications in Cisco~\cite{CISCO}, user interface in Adobe Photoshop Lightroom and extensions and add-ons in MySQL Workbench.
+In the aspect of commodity, Lua has been embedded in many devices, including CHDK Lua interface in Canon cameras~\cite{CLFL}, UIs in Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Talking about the technical, Lua is also used for network security applications in Cisco~\cite{CISCO} and extensions and add-ons in MySQL Workbench. What is more, CloudFlare, a company which provides network proxy and web server using Nginx, is trying further prove it using Lua because of the benefits of Lua~\cite{NPL}.
 
-%Lua proves very useful and is becoming more popular since simple and agile languages are in the trend of programming. In addition, for its qualities, applications using Lua could have a good ability of extending and customizing.
+% FIXED: Add citations for all of your examples, if possible.
+% FIXED: Mention Cloudflare, and cite those links that I sent you.
 
-%FIXME: Mention Cloudflare, and cite those links that I sent you.
 
-%\section{Related Work beside Lua}
 \section{Lua and JavaScript}
-%As we mentioned above, Lua is implemented as a library and written in clean C. Basically it will be easy for us to do further research about Lua because of this. However, we then find that
 Lua is similar in its design to the JavaScript programming language.
 Since JavaScript is widely used in client-side scripting,
 it has received significantly more attention than Lua,
@@ -49,8 +47,14 @@ but it differs in that it has a prototype-based object system.
 Lua's combination of tables and metatables provide similar functionality,
 but with a noticeably different feel.
 
-%FIXME: Cite the other JavaScript subset papers that I sent you.
+%FIXED: Cite the other JavaScript subset papers that I sent you.
+Besides, there is a paper~\cite{EOJS} showing how to reduce JavaScript to a core calculus structured based on small-step operational semantics. The paper also gives several models and desugaring process. Since our project will be based on big-step operational semantics, this paper will highly give us a lot of inspirations. There is also an implementation that we can study from.
 
+%ADD: Intros of OS
+\section{Operational semantics}
+Operational semantics~\cite{AIOS} are a set of rules, which provide certain important properties to a programming language, such like correctness or security. Basically, several logical statements make them up. Operational semantics can be classified into two different kinds: \emph{small-step semantics} and \emph{big-step semantics}. The former one describes each individual step in the computation, while the latter one showing how the final result of one statement is obtained after being fully executed.
+
+What is more, operational semantics are using another way presenting how a program is interpreted as sequences of statements. In the paper, we will show the big-step semantics of Featherweight Lua according to the research on Lua. Generally speaking, writing operational semantics is more like programming in an abstract way. We also implement an interpreter using Haskell, and it will completely follow the semantics that we have come up with when it is processing. Based on the research~\cite{AIOS}, operational semantics would be very important for implementing interpreter using functional programming language. It is because the final step of sequence statements in functional programming language returns a value of the program, which truly matches the mechanism of big-step operational semantics.
 
 %There once is a paper, talking about holding a new Language based on JavaScript called Featherweight JavaScript (FWJS)\cite{FWJS}. In the paper, dynamic information flow is focused. Also, it has mentioned several key elements about JavaScript, including the whole syntax and semantics about FWJS and how did they do that from original JavaScript. What we interested is the way they do desugaring using lambda calculus and a language called LambdaScript. There are many tricks and tips that are truly helpful for this project.
 
