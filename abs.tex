@@ -1,6 +1,6 @@
 Lua is designed to be a small, embedded language to provide scripting in other languages.  But despite a clean, minimal syntax, it is still too complex for formal reasoning.
 
-This thesis develops \emph{Featherweight Lua} (FWLua), following the tradition of languages like Featherweight Java~\cite{aaa} and Featherweight JavaScript~\cite{aaa}.  The goal is to develop a minimal core of language features that, while remaining simple enough for formal reasoning, also remain faithful to the central characteristics of the language.  Specifically for Lua, the core features that are essential for our modeling include:
+This thesis develops \emph{Featherweight Lua} (FWLua), following the tradition of languages like Featherweight Java\cite{FWJS} and Featherweight JavaScript\cite{FWJA}.  The goal is to develop a minimal core of language features that, while remaining simple enough for formal reasoning, also remain faithful to the central characteristics of the language.  Specifically for Lua, the core features that are essential for our modeling include:
 \begin{itemize}
 \item
 First-class functions
@@ -11,10 +11,7 @@ Tables as the central data construct
 \end{itemize}
 
 To further validate this approach, we show how an extensive set of features
-from the full Lua programming language can be reduced to FWLua.
-Finally, we include a reference implementation written in Haskell
-as a tool for further testing and experimenting with the language.
-With this research, we provide a basis for future research into the Lua programming language.
+from the full Lua programming language can be reduced to FWLua. Finally, we include a reference implementation written in Haskell as a tool for further testing and experimenting with the language. With this research, we provide a basis for future research into the Lua programming language.
 
 
 % and embeddable language in C/C++, which provide much agility and convenience in using. However, there might be some security holes in Lua that allow malicious code to attack. In this paper, we explore semantics of full Lua with information flow to provide specific security in Lua. In this project, we first research the syntax and semantics of full version Lua. Then we decompose it and deliver the evaluation rules of Full version Lua. Finally we give simpler evaluation rules by getting rid of those sugar or optional stuffs in the full version Lua. In addition, we not only simplify the full version Lua into a more concise version, but also compile it by making a compiler using Haskell to testify our work of Lua. The new version of Lua would include all key elements in full version Lua such as functions, table constructors and metatables.

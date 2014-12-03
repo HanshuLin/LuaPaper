@@ -33,7 +33,7 @@ rawget(rawget("\_ENV","t"),"y") --the value can be constant, register and functi
 }
 \end{flushleft}
 
-What is more, we cannot ignore the effect of metatable. There is a metamethod, as we mentioned, managing the behavior of indexing in tables. Therefore, the full desugaring rules, adding the effect of metatable, are shown by figure \ref{fig:Desugaring}.
+What is more, we cannot ignore the effect of metatable. There is a metamethod, as we mentioned, managing the behavior of indexing in tables. Therefore, the full desugaring rules, adding the effect of metatable, are shown by figure \ref{fig:translation} and \ref{fig:desLua}.
 
 
 \section{Variable update \& declaration}
@@ -60,7 +60,7 @@ rawset(rawget("\_ENV", "t"), "y", 63)\\
 }
 \end{flushleft}
 
-What is more, the desugared code could be more complex due to the introduction of metatables. We have also mentioned above that we have built a default metatable. By doing this, we let the variable assignement statements always check metamethod in metatable first to make sure if there is any hook being triggered. Also, figure \ref{fig:Desugaring} shows the desugaring rules for setting variables.
+What is more, the desugared code could be more complex due to the introduction of metatables. We have also mentioned above that we have built a default metatable. By doing this, we let the variable assignement statements always check metamethod in metatable first to make sure if there is any hook being triggered. Also, figure \ref{fig:translation} and \ref{fig:desLua} show the desugaring rules for setting variables.
 
 \section{Functions}
 Before desugaring functions in Lua, we first figure out the places those are different between Lua and FWLua. Since functions in FWLua look more like lambda calculus, there is an obvious difference, which is that each function in FWLua always take one arguments as perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
@@ -81,7 +81,7 @@ end \\
 }
 \end{flushleft}
 
-What is more, functions in Lua don't have to have a return statement, which means they might not return values as expressions do. Since there are only expressions in FWLua and all of them are returning values, we can make the return statement with reserved word ``{\tt return}'' as a key component in FWLua. According to full version of Lua, those which after the word ``return'' must return values since they must be expressions. However, this issue has been solved in FWLua with the syntax of {\tt rawset()}. Also, figure \ref{fig:Desugaring} gives the detail about functions.
+What is more, functions in Lua don't have to have a return statement, which means they might not return values as expressions do. Since there are only expressions in FWLua and all of them are returning values, we can make the return statement with reserved word ``{\tt return}'' as a key component in FWLua. According to full version of Lua, those which after the word ``return'' must return values since they must be expressions. However, this issue has been solved in FWLua with the syntax of {\tt rawset()}. Also, figure \ref{fig:translation} and \ref{fig:desLua} give the detail about functions.
 
 \section{Tables}
 Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate a new address in the global store. And we then can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
@@ -102,7 +102,7 @@ rawset(rawget("\_ENV", "table"), "z", 5)\\
 }
 \end{flushleft}
 
-What is more, we still have to concern about metatables and metamethods. In the above section, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Since our system has a default metatable, the syntactic desugaring from Lua to FWLua would also include them. Check the figure \ref{fig:Desugaring} for more detail about desugaring about tables.
+What is more, we still have to concern about metatables and metamethods. In the above section, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Since our system has a default metatable, the syntactic desugaring from Lua to FWLua would also include them. Check the following figures (\ref{fig:translation} and \ref{fig:desLua}) for more detail about desugaring about tables.
 
 \section{Others}
 The figure also gives some other desugaring rules, they might not belong to any parts above, but they are all equally important for FWLua. First of all, we choose to desugar conditional statements and loop statements, since they are all playing key roles in a programming language for doing computations. Also, after introduced the system of lambda calculus, we have to also handle Boolean values including {\tt True} and {\tt False} by making them as a function. In addition, the sequence statements can be represented as some function applications. Since the symbol {\tt ;} is operational in Lua, it is necessary to make it into function. Finally, binary operators in Lua can also be redefined in the metatable and thus change the behaviors as we have mentioned. So there is a need for desugaring them from Lua to FWLua.
@@ -112,19 +112,17 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \begin{figure}[P]
 \caption{Translation rules from Lua to FWLua}
 
-{\bf Translation:~~~ \fbox{$\llbracket e \rrbracket~:~{\tt Lua}~\xlongequal[]{}~{\tt FWLua}   $}   } 
+{\bf Translation:~~~ \fbox{$\llbracket e \rrbracket~:~{\it Lua}~\xlongequal[]{}~{\it FWLua}   $}   } 
 \label{fig:translation}
 \[
 \begin{array}{rclcl}
 \translate{e_1{\tt ;}~e_2}{(\aFunction{a}{e_2})(e_1)}
+\translate{{\tt rawset}(e_1,e_2,e_3)}{{\tt rawset}(e_1,e_2,e_3)}
+\translate{{\tt rawget}(e_1,e_2)}{{\tt rawget}(e_1,e_2)}
 \translate{
-    t = \{\}
+    \{\}
 }{
-   {\tt rawset}(a, ``t", \{\});  
-}
-\translateline{
-    {\tt rawset}({\tt rawget}(a, ``t"), ``\_metatable", default);\\
-    {\tt rawset}({\tt rawget}(a, ``t"), ``\_index", 0);
+   \{(``\_metatable", {\it defaultMT}),(``\_index", 0)\}  
 }
 
 \translate{{\tt function}~(x,y)~e~{\tt end}}{\aFunction{x}{\aFunction{y}{e}}}
@@ -137,53 +135,10 @@ The figure also gives some other desugaring rules, they might not belong to any 
 }
 \translate{\tt True}{\aFunction{x}{\aFunction{y}{x}}}
 \translate{\tt False}{\aFunction{x}{\aFunction{y}{y}}}
-\translate{e_1[e_2]}{{\lambda}e_1.{\lambda}e_2.}
-\translateline{ 
-    \quad \llbracket{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\
-    \quad\quad{\tt rawget}(e_1, e_2) ~\\
-    \quad{\tt else}\\
-    \quad\quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index};\\
-    \quad\quad f(e_1,e_2)\\ 
-    \quad{\tt end}\rrbracket
-}
-\\
-\translate{e_1[e_2]=e_3}{
-    {\lambda}e_1.{\lambda}e_2.{\lambda}e_3.\\ 
-}
-\translateline{ 
-    \quad \llbracket{\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
-    \quad\quad{\tt rawset}(e_1, e_2,e_3) ~\\
-    \quad{\tt else}\\
-    \quad\quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex};\\
-    \quad\quad f(e_1,e_2,e_3)\\ 
-    \quad{\tt end}\rrbracket
-}
 
 \end{array}
 \]
 \end{figure}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 \begin{figure}[P]
@@ -193,24 +148,46 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \[
 \begin{array}{rclcl}
 \\
+
 \desugar{x}{{\tt \_ENV}[x]}
 \desugar{e.x}{e[``x"]}
 \desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}}
-\desugar{{\tt local}~x=e}{a.\_localscope.x = e;}
+\desugar{{\tt local}~x=e(in~a)}{a.\_localscope.x = e;}
 \desugar{e_1.x=e_2}{e_1[``x"] = e_2}
+\desugar{e_1[e_2]}{{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\}
+\desugarline{ 
+     \quad{\tt rawget}(e_1, e_2) ~\\
+     {\tt else}\\
+     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index};\\
+     \quad f(e_1,e_2)\\ 
+     {\tt end}\\
+}
+\desugar{e_1[e_2]=e_3}{
+    {\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
+}
+\desugarline{  
+     \quad{\tt rawset}(e_1, e_2,e_3) ~\\
+     {\tt else}\\
+     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex};\\
+     \quad f(e_1,e_2,e_3)\\ 
+     {\tt end}\\
+ 
+}
 \desugar{{\tt function}~f(x,y)~e_1~{\tt end}}{f = \{\}; f.\_localscope = \{\};}
 \desugarline{f.\_body = {\tt function}~(x,y)~e_1~{\tt end}}
-\desugar{t = \{e_1=e_2\}}{t = \{\}; t[e_1] = e_2}
-\desugar{t = \{\overline{e_i = e_j}\}}{t = \{\}; t[e_i]=e_j; t }
-\desugar{t = \{x\}}{t = \{\};}
+\desugar{t = \{\overline{e_i = e_j}\}}{t = \{\}; \overline{t[e_i]=e_j}}
+\desugar{t = \{\overline{x_i}\}}{t = \{\};}
 \desugarline{ {\tt while}~t[\_index] == {\tt nil~do}}
 \desugarline{ ~~\_index = \_index + 1~ }
 \desugarline{{\tt end};}
-\desugarline{ t[\_index] = x}
+\desugarline{ \overline{t[\_index] = x_i; t.\_index = 0}}
+
 \desugar{{\tt while}~e_1~{\tt do}~e_2~{\tt end}}{
-    f =  {\tt if}~e_1~{\tt then}~e_2~{\tt else}~{\tt False}~{\tt end};
+    {\tt function}~f()
 }
-\desugarline{ {\tt if}~e_1~{\tt then}~{\tt f}~{\tt else}~{\tt False}~{\tt end}}
+\desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f~{\tt else}~{\tt False}~{\tt end};\\
+{\tt end};f()
+}
 \desugar{
     e_1~ op ~e_2
 }{
@@ -226,15 +203,7 @@ The figure also gives some other desugaring rules, they might not belong to any 
 
 
 
-
-
-
-
-
-
-
-
-
+\begin{comment}
 \begin{figure}[P]
 \caption{Getting and setting variables}
 {\bf Getting Variables}
@@ -242,16 +211,21 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \[
 \begin{array}{rclcl}
 \\
-\desugar{x}{{\tt \_ENV}[e]}
-\desugar{e.x}{e[``x"]}
+\desugar{x}{\llbracket{\tt \_ENV}[e]\rrbracket}
+\desugar{e.x}{\llbracket e[``x"]\rrbracket}
+\desugar{
+    \{\}
+}{
+   \llbracket a.\_metatable = default; a.\_index = 0; a\rrbracket\\
+}
 \desugar{e_1[e_2]}{{\lambda}e_1.{\lambda}e_2.}   
 \desugarline{
-    \quad{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\
+    \quad\llbracket{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\
     \quad\quad{\tt rawget}(e_1, e_2) ~\\
     \quad{\tt else}\\
-    \quad\quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index}~\\
-    \quad\quad f(e_1,e_2)\\ 
-    \quad{\tt end}
+    \quad\quad\llbracket\llbracket{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index}\rrbracket;\\
+    \quad\quad  \llbracket f(e_1,e_2)\rrbracket\rrbracket\\
+    \quad{\tt end}\rrbracket
 }
 \\
 \end{array}
@@ -262,22 +236,22 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugar{
      \overline{e_i}=\overline{e_j}
 }{   
-     \overline{e_i = e_j}
+     \llbracket \overline{e_i = e_j} \rrbracket
 }
 \desugar{
-     {\tt local}~x=e
+     {\tt local}~x=e~{\tt in}~s
 }{   
-  a.\_localscope.x = e;
+  \llbracket s.\_localscope.x = e; \rrbracket
 }
-\desugar{e_1.x=e_2}{e_1[``x"] = e_2}
+\desugar{e_1.x=e_2}{\llbracket e_1[``x"] = e_2 \rrbracket}
 \desugar{e_1[e_2]=e_3}{{\lambda}e_1.{\lambda}e_2.{\lambda}e_3.}
 \desugarline{
-    \quad{\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
+    \quad\llbracket {\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
     \quad\quad{\tt rawset}(e_1, e_2,e_3) ~\\
     \quad{\tt else}\\
-    \quad\quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex}~\\
-    \quad\quad f(e_1,e_2,e_3)\\ 
-    \quad{\tt end}
+    \quad\quad\llbracket\llbracket{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex}\rrbracket;\\
+    \quad\quad \llbracket f(e_1,e_2,e_3)\rrbracket\rrbracket\\ 
+    \quad{\tt end}\rrbracket
 }
 \\
 \end{array}
@@ -295,13 +269,13 @@ The figure also gives some other desugaring rules, they might not belong to any 
 }{
     \aFunction{x}{\aFunction{y}{e_1}}
 }
-\desugar{
-    {\tt function}~f(x,y)~e_1~{\tt end}}{f = \{\};}
-\desugarline{f.\_localscope = \{\};\\
-          f.\_body = {\tt function}~(x,y)~e_1~{\tt end}
-}
 \desugar{f(e)}{(f)(e)}
 \desugar{f(e_1,e_2)}{((f)(e_1))(e_2)}
+\desugar{
+    {\tt function}~f(x,y)~e_1~{\tt end}}{\llbracket \llbracket f = \{\} \rrbracket;}
+\desugarline{~~\llbracket f.\_localscope = \{\}\rrbracket;\\
+         ~~\llbracket f.\_body = {\tt function}~(x,y)~e_1~{\tt end}\rrbracket\rrbracket
+}
 \\
 \end{array}
 \]
@@ -309,11 +283,6 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \label{fig:tables}
 \[
 \begin{array}{rclcl}
-\desugar{
-    \{\}
-}{
-   a.\_metatable = default; a.\_index = 0; a\\
-}
 \desugar{
     t = \{e_1=e_2\}
 }{
@@ -358,11 +327,10 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugar{
     e_1~ op ~e_2
 }{
-    f = a.\_metatable.({\tt translate})(op); f(e_1, e_2)
-    
+    f = a.\_metatable.({\tt translate})(op); f(e_1, e_2)    
 }
 \end{array}\]
 
 
 \end{figure}
-
+\end{comment}
