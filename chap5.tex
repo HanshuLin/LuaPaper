@@ -188,11 +188,6 @@ The figure also gives some other desugaring rules, they might not belong to any 
 \desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f~{\tt else}~{\tt nil}~{\tt end}\\
 {\tt end};f()
 }
-\desugar{
-    e_1~ op ~e_2
-}{
-    f = a.\_metatable.{\tt translate}(op); f(e_1, e_2)
-}
 \end{array}\]
 \end{figure}
 
