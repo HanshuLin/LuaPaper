@@ -41,55 +41,55 @@ In Figure~\ref{fig:LuaSynFull}, we give a brief introduction about the important
 
 \newcommand{\syntaxcase}[1]{{\tt \quad\quad\quad\quad\quad\quad~}{\tt ~~#1}\\}
 
-\begin{figure}
-\caption{Full Syntax in Lua}
-\label{fig:LuaSynFull}
-\[
-\begin{array}{llr}
-  \syntax{chunk}{block}
-  \syntax{block}{\{statement\}[retstat]}
-  \syntax{statement}{`;'}
-  \syntaxcase{varlist~`='~explist}
-  \syntaxcase{functioncall}
-  \syntaxcase{label}
-  \syntaxcase{\bf break}
-  \syntaxcase{{\bf goto}~name}
-  \syntaxcase{{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf while}~expression~{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf repeat}~block~{\bf until}~expression}
-  \syntaxcase{{\bf if}~expression~{\bf then}~block~\{{\bf elseif} ~ expression~{\bf then}~block\}} 
-  \syntaxcase{\quad[{\bf else}~ block] ~ {\bf end}}
-  \syntaxcase{{\bf for}~Name~{\bf `='}~expression~`,'~expression~[`,'~expression]}
-  \syntaxcase{\quad{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf for}~namelist~{\bf in}~explist~{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf function}~funcname~funcbody}
-  \syntaxcase{{\bf local}~{\bf function}~Name~functionbody}
-  \syntaxcase{{\bf local}~namelist~[`='~explist]}
-  \syntax{retstat}{{\bf return}~[explist]~[`;']}
-  \syntax{label}{~`::'~Name~`::'}
-  \syntax{funcname}{Name~\{`.'~Name\}~[`:'~Name]}
-  \syntax{varlist}{var~\{`,'~var\}}
-  \syntax{var}{Name ~|~prefixexp~`[`~expression~`]'~|~prefixexp~`.'~Name}
-  \syntax{namelist}{Name~\{~`,'~Name\}}
-  \syntax{explist}{expression~\{~`,'~expression\}}
-  \syntax{expression}{{\bf nil} ~|~{\bf false}~|~{\bf true}~|~Number~|~String~|~`...'~|~functiondef~|}
-  \syntaxcase{\quad prefixexp~|~expression~binop~expression~|}
-  \syntaxcase{\quad tableconstructor~|~unop~args}
-  \syntax{prefixexp}{var ~|~functioncall~|~`('~exp~`)'}
-  \syntax{functioncall}{prefixexp~args ~|~prefixexp~`:'~Name~args}
-  \syntax{args}{tableconstructor ~|~String~|~`('~[explist]~`)'}
-  \syntax{functiondef}{{\bf function}~funcbody}
-  \syntax{funcbody}{`('~[parlist]~ `)'~block~{\bf end}}
-  \syntax{parlist}{namelist~[`,'~`...']~|~`...'}
-  \syntax{tableconstructor}{`\{' ~[fieldlist]~`\}'}
-  \syntax{fieldlist}{field ~\{fieldsep~field\}~[fieldsep]}
-  \syntax{field}{`[' ~expression~ `]'~`='~expression~|~Name~`='~expression~|~exp}
-  \syntax{fieldsep}{`,' ~|~`;'}
-  \syntax{binop}{`+'~|~`-'~|~`*'~|~`/'~|~`{\wedge}'~|~`\&'~|~`..'~|~`<'~|~`<='~|~`>'~|~`>='~|~`=='~|~`{\sim}='~|~{\bf and}~|~{\bf or}}
-  \syntax{unop}{`-'~|~{\bf not}~|~`\#'}
-\end{array}
-\]
-\end{figure}
+%\begin{figure}
+%\caption{Full Syntax in Lua}
+%\label{fig:LuaSynFull}
+%\[
+%\begin{array}{llr}
+%  \syntax{chunk}{block}
+%  \syntax{block}{\{statement\}[retstat]}
+%  \syntax{statement}{`;'}
+%  \syntaxcase{varlist~`='~explist}
+%  \syntaxcase{functioncall}
+%  \syntaxcase{label}
+%  \syntaxcase{\bf break}
+%  \syntaxcase{{\bf goto}~name}
+%  \syntaxcase{{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf while}~expression~{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf repeat}~block~{\bf until}~expression}
+%  \syntaxcase{{\bf if}~expression~{\bf then}~block~\{{\bf elseif} ~ expression~{\bf then}~block\}} 
+%  \syntaxcase{\quad[{\bf else}~ block] ~ {\bf end}}
+%  \syntaxcase{{\bf for}~Name~{\bf `='}~expression~`,'~expression~[`,'~expression]}
+%  \syntaxcase{\quad{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf for}~namelist~{\bf in}~explist~{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf function}~funcname~funcbody}
+%  \syntaxcase{{\bf local}~{\bf function}~Name~functionbody}
+%  \syntaxcase{{\bf local}~namelist~[`='~explist]}
+%  \syntax{retstat}{{\bf return}~[explist]~[`;']}
+%  \syntax{label}{~`::'~Name~`::'}
+%  \syntax{funcname}{Name~\{`.'~Name\}~[`:'~Name]}
+%  \syntax{varlist}{var~\{`,'~var\}}
+%  \syntax{var}{Name ~|~prefixexp~`[`~expression~`]'~|~prefixexp~`.'~Name}
+%  \syntax{namelist}{Name~\{~`,'~Name\}}
+%  \syntax{explist}{expression~\{~`,'~expression\}}
+%  \syntax{expression}{{\bf nil} ~|~{\bf false}~|~{\bf true}~|~Number~|~String~|~`...'~|~functiondef~|}
+%  \syntaxcase{\quad prefixexp~|~expression~binop~expression~|}
+%  \syntaxcase{\quad tableconstructor~|~unop~args}
+%  \syntax{prefixexp}{var ~|~functioncall~|~`('~exp~`)'}
+%  \syntax{functioncall}{prefixexp~args ~|~prefixexp~`:'~Name~args}
+%  \syntax{args}{tableconstructor ~|~String~|~`('~[explist]~`)'}
+%  \syntax{functiondef}{{\bf function}~funcbody}
+%  \syntax{funcbody}{`('~[parlist]~ `)'~block~{\bf end}}
+%  \syntax{parlist}{namelist~[`,'~`...']~|~`...'}
+%  \syntax{tableconstructor}{`\{' ~[fieldlist]~`\}'}
+%  \syntax{fieldlist}{field ~\{fieldsep~field\}~[fieldsep]}
+%  \syntax{field}{`[' ~expression~ `]'~`='~expression~|~Name~`='~expression~|~exp}
+%  \syntax{fieldsep}{`,' ~|~`;'}
+%  \syntax{binop}{`+'~|~`-'~|~`*'~|~`/'~|~`{\wedge}'~|~`\&'~|~`..'~|~`<'~|~`<='~|~`>'~|~`>='~|~`=='~|~`{\sim}='~|~{\bf and}~|~{\bf or}}
+%  \syntax{unop}{`-'~|~{\bf not}~|~`\#'}
+%\end{array}
+%\]
+%\end{figure}
 
 
 
