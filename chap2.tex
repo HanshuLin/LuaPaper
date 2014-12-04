@@ -1,20 +1,39 @@
 \chapter{Full Version Lua}
-At beginning, the syntax in full version Lua will be introduced in this chapter. As mentioned above, Lua language is an extension programming language. In other words, the syntax of full Lua could not be so complicated. However, there are still several parts which would render confusion in Lua. We will talk about it later.  
+We introduce the syntax for the full version of Lua in this chapter. As mentioned previously, Lua is an extension programming language, and therefore its syntax is relatively simple. However, there are still several parts which can cause confusion in Lua.
+%We will talk about it later.  
 
 \section{Syntax in Lua}
-As a small extension language \cite{PIL}, Lua has many same points with JavaScript in the structure. Also, Lua splits its statement and expression in the syntax and thus does not allow expression to appear individually in one line of code. In other words, this is more like Java, a big programming language which has clearly seperated the meaning of those two syntax.
+Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure.  Lua splits statements and expressions and thus does not allow expression to appear individually in one line of code.
+%In other words, this is more like Java, a big programming language which has clearly seperated the meaning of those two syntax.
 
-In Lua, every program can be thought as a block. A block is a list of statements, which are executed sequentially. In addition, return statement can only be used in the end of a block, although it is optional. What is more, the portion of statements has a bunch of syntax with expressions within. We will talk about it in detail in the following part. Although Syntax in Lua is not this simple, to make it concise, we will say that the basic element in Lua is blocks and statements in them and focus on here.
+Every program can be thought as a block. A block is a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
 
-In the next step, we will talk about two important elements in the Lua separately, which are Expression and Statement. There is one thing need to be mentioned in Lua is that Expression and Statement are seperated and partially independent. Therefore, although most programming languages allow their Expression to be put in the code individually, Lua cannot do that. In other words, only statements, like assignment statement, for example, can be allowed in Lua. This charactor make Lua more interesting and complex, and that would be the reason why we need to analyze Lua very carefully.
+%What is more, the portion of statements has a bunch of syntax with expressions within.
+%We will talk about it in detail in the following part.
+%Although Syntax in Lua is not this simple, to make it concise, we will say that the basic element in Lua is blocks and statements in them and focus on here.
 
-So the reason why is crucial would be obvious, a function can be invoked both in statement and expression. In other words, Lua actually does not completely split its statement and expression into two independent parts because of funcions. Therefore, we will still introduce them sepeartely but we will also unite them finally.
+Next, we will discuss two important elements in Lua separately, which are expressions and statements.
+Expressions and statements are separated and partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of a statement and cannot stand alone in a program.
+%This characteristic makes Lua more interesting and complex, and that would be the reason why we need to analyze Lua very carefully.
+%
+% FIXME: Double check this statement.
+However, note that function declaration and function application are considered both statements and expressions.
+%Lua actually does not completely split its statement and expression into two independent parts because of funcions. Therefore, we will still introduce them sepeartely but we will also unite them finally.
 
-The following is a figure representing the full syntax of Lua in a concrete way. We can see that expressions are very basic and key element in the syntax of Lua. There are many core elements for the evaluation rules in expressions, even though they cannot appear individually. Based on that, analyzing expression would be an important work. It is because we want to only keep those core element and both the syntax and semantics cleaner in the future.
+% FIXME: What is "the following"?  Figure 1?
+% FIXME: Play around with the tables until they show up closer to your text.  See me if you need help on this.
+The following figure shows Lua's complete syntax.
+%representing the full syntax of Lua in a concrete way. We can see that expressions are very basic and key element in the syntax of Lua. There are many core elements for the evaluation rules in expressions, even though they cannot appear individually. Based on that, analyzing expression would be an important work. It is because we want to only keep those core element and both the syntax and semantics cleaner in the future.
+%
+%Before we start to research those core elements, we need to get a clear thinking about the basic syntax in full version Lua.
+Although Lua has a relatively simple syntax, it is still too complex for formal reasoning.
+As we can see, there are
+%about its whole syntax since there would be
+% FIXME: Where do we remove the syntactic sugar?  In the creation of FWLua?  Be explicit.
+many different ways to represent the same statement using different syntactic sugar. Therefore, we remove all syntactic sugar in the syntax and then give a cleaner syntax about Lua as our first step.
 
-Before we start to research those core elements, we need to get a clear thinking about the basic syntax in full version Lua. Although Lua is a simple language, it is still complex about its whole syntax since there would be many different ways to represent a statement by using different syntactic sugars. Therefore, we choose to remove all syntactic sugars in the syntax and then give a cleaner syntax about Lua as our first step.
-
-In Figure \ref{fig:LuaSynFull}, we give a brief introduction about the important parts of Lua. Those parts include expressions, statements, functions, metatables. What is more, we will talk about how the full version of Lua may be desugared to our core language in the Chapter 5.
+% FIXME: Remove "Chapter 5" and replace with a reference to Chapter 5.  See me if you need help.
+In Figure~\ref{fig:LuaSynFull}, we give a brief introduction about the important parts of Lua. Those parts include expressions, statements, functions, metatables. We will talk about how the full version of Lua may be desugared to our core language in Chapter 5.
 
 
 % Commands for formatting figure
@@ -22,55 +41,55 @@ In Figure \ref{fig:LuaSynFull}, we give a brief introduction about the important
 
 \newcommand{\syntaxcase}[1]{{\tt \quad\quad\quad\quad\quad\quad~}{\tt ~~#1}\\}
 
-\begin{figure}
-\caption{Full Syntax in Lua}
-\label{fig:LuaSynFull}
-\[
-\begin{array}{llr}
-  \syntax{chunk}{block}
-  \syntax{block}{\{statement\}[retstat]}
-  \syntax{statement}{`;'}
-  \syntaxcase{varlist~`='~explist}
-  \syntaxcase{functioncall}
-  \syntaxcase{label}
-  \syntaxcase{\bf break}
-  \syntaxcase{{\bf goto}~name}
-  \syntaxcase{{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf while}~expression~{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf repeat}~block~{\bf until}~expression}
-  \syntaxcase{{\bf if}~expression~{\bf then}~block~\{{\bf elseif} ~ expression~{\bf then}~block\}} 
-  \syntaxcase{\quad[{\bf else}~ block] ~ {\bf end}}
-  \syntaxcase{{\bf for}~Name~{\bf `='}~expression~`,'~expression~[`,'~expression]}
-  \syntaxcase{\quad{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf for}~namelist~{\bf in}~explist~{\bf do}~block~{\bf end}}
-  \syntaxcase{{\bf function}~funcname~funcbody}
-  \syntaxcase{{\bf local}~{\bf function}~Name~functionbody}
-  \syntaxcase{{\bf local}~namelist~[`='~explist]}
-  \syntax{retstat}{{\bf return}~[explist]~[`;']}
-  \syntax{label}{~`::'~Name~`::'}
-  \syntax{funcname}{Name~\{`.'~Name\}~[`:'~Name]}
-  \syntax{varlist}{var~\{`,'~var\}}
-  \syntax{var}{Name ~|~prefixexp~`[`~expression~`]'~|~prefixexp~`.'~Name}
-  \syntax{namelist}{Name~\{~`,'~Name\}}
-  \syntax{explist}{expression~\{~`,'~expression\}}
-  \syntax{expression}{{\bf nil} ~|~{\bf false}~|~{\bf true}~|~Number~|~String~|~`...'~|~functiondef~|}
-  \syntaxcase{\quad prefixexp~|~expression~binop~expression~|}
-  \syntaxcase{\quad tableconstructor~|~unop~args}
-  \syntax{prefixexp}{var ~|~functioncall~|~`('~exp~`)'}
-  \syntax{functioncall}{prefixexp~args ~|~prefixexp~`:'~Name~args}
-  \syntax{args}{tableconstructor ~|~String~|~`('~[explist]~`)'}
-  \syntax{functiondef}{{\bf function}~funcbody}
-  \syntax{funcbody}{`('~[parlist]~ `)'~block~{\bf end}}
-  \syntax{parlist}{namelist~[`,'~`...']~|~`...'}
-  \syntax{tableconstructor}{`\{' ~[fieldlist]~`\}'}
-  \syntax{fieldlist}{field ~\{fieldsep~field\}~[fieldsep]}
-  \syntax{field}{`[' ~expression~ `]'~`='~expression~|~Name~`='~expression~|~exp}
-  \syntax{fieldsep}{`,' ~|~`;'}
-  \syntax{binop}{`+'~|~`-'~|~`*'~|~`/'~|~`{\wedge}'~|~`\&'~|~`..'~|~`<'~|~`<='~|~`>'~|~`>='~|~`=='~|~`{\sim}='~|~{\bf and}~|~{\bf or}}
-  \syntax{unop}{`-'~|~{\bf not}~|~`\#'}
-\end{array}
-\]
-\end{figure}
+%\begin{figure}
+%\caption{Full Syntax in Lua}
+%\label{fig:LuaSynFull}
+%\[
+%\begin{array}{llr}
+%  \syntax{chunk}{block}
+%  \syntax{block}{\{statement\}[retstat]}
+%  \syntax{statement}{`;'}
+%  \syntaxcase{varlist~`='~explist}
+%  \syntaxcase{functioncall}
+%  \syntaxcase{label}
+%  \syntaxcase{\bf break}
+%  \syntaxcase{{\bf goto}~name}
+%  \syntaxcase{{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf while}~expression~{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf repeat}~block~{\bf until}~expression}
+%  \syntaxcase{{\bf if}~expression~{\bf then}~block~\{{\bf elseif} ~ expression~{\bf then}~block\}} 
+%  \syntaxcase{\quad[{\bf else}~ block] ~ {\bf end}}
+%  \syntaxcase{{\bf for}~Name~{\bf `='}~expression~`,'~expression~[`,'~expression]}
+%  \syntaxcase{\quad{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf for}~namelist~{\bf in}~explist~{\bf do}~block~{\bf end}}
+%  \syntaxcase{{\bf function}~funcname~funcbody}
+%  \syntaxcase{{\bf local}~{\bf function}~Name~functionbody}
+%  \syntaxcase{{\bf local}~namelist~[`='~explist]}
+%  \syntax{retstat}{{\bf return}~[explist]~[`;']}
+%  \syntax{label}{~`::'~Name~`::'}
+%  \syntax{funcname}{Name~\{`.'~Name\}~[`:'~Name]}
+%  \syntax{varlist}{var~\{`,'~var\}}
+%  \syntax{var}{Name ~|~prefixexp~`[`~expression~`]'~|~prefixexp~`.'~Name}
+%  \syntax{namelist}{Name~\{~`,'~Name\}}
+%  \syntax{explist}{expression~\{~`,'~expression\}}
+%  \syntax{expression}{{\bf nil} ~|~{\bf false}~|~{\bf true}~|~Number~|~String~|~`...'~|~functiondef~|}
+%  \syntaxcase{\quad prefixexp~|~expression~binop~expression~|}
+%  \syntaxcase{\quad tableconstructor~|~unop~args}
+%  \syntax{prefixexp}{var ~|~functioncall~|~`('~exp~`)'}
+%  \syntax{functioncall}{prefixexp~args ~|~prefixexp~`:'~Name~args}
+%  \syntax{args}{tableconstructor ~|~String~|~`('~[explist]~`)'}
+%  \syntax{functiondef}{{\bf function}~funcbody}
+%  \syntax{funcbody}{`('~[parlist]~ `)'~block~{\bf end}}
+%  \syntax{parlist}{namelist~[`,'~`...']~|~`...'}
+%  \syntax{tableconstructor}{`\{' ~[fieldlist]~`\}'}
+%  \syntax{fieldlist}{field ~\{fieldsep~field\}~[fieldsep]}
+%  \syntax{field}{`[' ~expression~ `]'~`='~expression~|~Name~`='~expression~|~exp}
+%  \syntax{fieldsep}{`,' ~|~`;'}
+%  \syntax{binop}{`+'~|~`-'~|~`*'~|~`/'~|~`{\wedge}'~|~`\&'~|~`..'~|~`<'~|~`<='~|~`>'~|~`>='~|~`=='~|~`{\sim}='~|~{\bf and}~|~{\bf or}}
+%  \syntax{unop}{`-'~|~{\bf not}~|~`\#'}
+%\end{array}
+%\]
+%\end{figure}
 
 
 
