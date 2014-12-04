@@ -17,15 +17,15 @@ none of them provided data description. Therefore, Lua was created without the n
 
 With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes including the simplification of the semantics for table constructors,
 the concept of ``fallbacks''---a bunch of programmer defined functions that are called whenever Lua does not know what to do next, and so on. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods, and developers using Lua 3 can create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, The {\tt for} loop statement was introduced in Lua. 
-Also, fallbacks and tag methods were merged into metatables.
+Also, in February 2002, Lua 4.1 introduced metatables and metamethods, as the replacement for tag methods and fallbacks~\cite{TEL}.
 
 \section{Where to use Lua}
 Lua is often embedded in many applications to fulfill some simple and small tasks because of its qualities. Usually, Lua is used to do add extensions in large applications that would be hard to change. Also, game developers are fond of using Lua~\cite{AIL}. Lua can be used in many programs in different domains that need extensions to make them flexible. 
 
 For instance, Lua is used to create user interface add-ons in the popular online game called The World of Warcraft~\cite{WLA}. These add-ons are commonly used for assisting players by adding some simple functionality in the game, such as timers, alerts, chat reminders, action automations, dashboards and so on. Based on the add-ons website Curse~\cite{WCU}, there are more than 4600 different add-ons used in the game.
 
-% FIXME: Add reference for LuaJIT
-In the aspect of commodities, Lua has been embedded in many devices, including the CHDK Lua interface for Canon cameras~\cite{CLFL}, UI designs for Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Lua is also used for network security applications in Cisco~\cite{CISCO} and for extensions and add-ons in the MySQL Workbench. CloudFlare, a content delivery network using Nginx, is trying further improve its performance using Lua because of the benefits of Lua~\cite{NPL} and the speed of the LuaJIT engine~\cite{aaa}.
+% FIXED: Add reference for LuaJIT
+In the aspect of commodities, Lua has been embedded in many devices, including the CHDK Lua interface for Canon cameras~\cite{CLFL}, UI designs for Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Lua is also used for network security applications in Cisco~\cite{CISCO} and for extensions and add-ons in the MySQL Workbench. CloudFlare, a content delivery network using Nginx, is trying further improve its performance using Lua because of the benefits of Lua~\cite{NPL} and the speed of the LuaJIT engine~\cite{LJT}.
 
 
 \section{Lua and JavaScript}
