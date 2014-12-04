@@ -247,21 +247,34 @@ the return statement is illegal.
 \end{figure}
 
 \section{Functions}
-A function is made up by a set of statements and expressions in Lua. The reason we choose to further introduce functions would be that they could be used as either expressions or statements, which are totally different in Lua. Apparently, function is a bridge that efficiently links the syntax of expression and statement so that it stops them from being apart completely. However, functions will vary in different conditions. In the section, we will mainly introduce those differences and how could we treat if in the project.
+A function is made up of a set of statements and expressions in Lua. The reason we choose to further introduce functions is that they could be used as either expressions or statements.
+%Apparently, functions serve as a bridge to link the syntax of expression and statement so that it stops them from being apart completely. However, functions will vary in different conditions.
+This section discusses those differences in more detail.
 
-Based on the research \cite{PIL}, we may think that there are at least two main purpose of using functions in programming language: accomplish a specific task such like a procedure, or return a value after being computed which looks more like a block. According to this, we can use a function call as a statement in the former case and regard it as an expression in the latter one. It is because that statement, which would possibly change the store, is more like to accomplish a mission from user, and we also treat expression as a value after being evaluated.
+Based on the research \cite{PIL}, we think that there are at least two main purposes of using functions in programming languages: to produce some side effect, or to return a value after being computed. According to this, we can use a function call as a statement in the former case and regard it as an expression in the latter one. However, a given function call may serve both purposes, depending on the function's definition.
+%It is because that statement, which would possibly change the store, is more like to accomplish a mission from user, and we also treat expression as a value after being evaluated.
 
-In other words, there are two types of functions in a programming language. They are reserved function and user-defined function, just as most programming languages have. Lua provides anonymous function, which means that a function definition expression will return itself as the result. Basically, a function in this condition would be an expression, and it would return a value. We can know that we also treat function itself, including its arguments and body, as a value in Lua to provide anonymous function.
+%In other words, there are two types of functions in a programming language. They are reserved function and user-defined function, just as most programming languages have.
+Lua provides anonymous function, which means that a function definition expression will return itself as the result. Basically, a function in this case is an expression that evaluates to a closure.
+%We can know that we also treat function itself, including its arguments and body, as a value in Lua to provide anonymous function.
 
-\section{Metatable and Metamethods}
-Metatables are one of the more unusual features in Lua . There are several functions in metatable as default and we can call them ``metamethods''. Metamethods will automatically be called when the specific condition is satisfied. This is usually called ``hooks'' in many programming languages. The primary goal of metatable is to control the basic behavior of tables. For instance, if we want to find a value with its key that not exists in the table, some metamethods in the metatable of this table will automatically execute instead of reporting crash at the beginning.
+One important aspect of functions in Lua is that they are first-class values,
+meaning that it is possible to support functional programming paradigms.
+We see this behavior of Lua as one of its core characteristics.
 
-There are not so many reserved functions in the default metatable. Part of them is used for method controlling, and another part is for binary operation. In addition, these reserved metamethods can be redefined while remaining the same triggering condition and such modifies behaviors of a table by user's hand. All in all, as a set of automatically executing function, metatable can be very powerful and convenience for Lua's user.
+\section{Metatables and Metamethods}
+Metatables are one of the more unusual features in Lua. The functions in metatables are called ``metamethods''. Metamethods are automatically called when the specific condition is satisfied. They are usually called ``hooks'' in many programming languages. The primary goal of metatables is to control the basic behavior of tables. For instance, if we want to find a value with a key that does not exist in the table, the {\tt \_\_index} metamethod in the metatable of this table will automatically execute instead of reporting a crash.
 
-Lua has a set of reserved functions for metatable such like {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the metatable. Actually we are using these functions for the researching in the project since we all think metatable plays a key role in the language of Lua. We also highly adopt that if the default metatable exists in every table that we just create. However, we decide to build a default metatable with some empty metamethods to make our implementation simpler. Meanwhile, more rules about metatable can be found in the ref \cite{LRM}.
+There are only a few default functions in the metatable. They include hooks for behavior controlling, and for binary operations. In addition, these metamethods can be redefined by the programmer. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
+
+Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua.
+%We also highly adopt that if the default metatable exists in every table that we just create. However,
+% FIXME: Add section reference
+In Section~\ref{sec:aaa} we decide to build a default metatable to simplify our implementation. Meanwhile, more rules about metatable can be found in the ref \cite{LRM}.
 
 \section{Tables}
-From the figure above, we can see that there is an expression called table constructor, which is to create a new table as a value. Basically, there are many ways telling the program how to deal with a table and also specify the values in it. However, the purposes of these syntax would all be the same: assign a value to a key in the specific table.
+% FIXME: Add figure ref
+From Figure~\ref{fig:aaa}, we can see that there is an expression for table constructors, which create a new table as a value. Basically, there are many ways of telling the program how to deal with a table and also to specify the values in it. However, the purpose of the different syntax would all be the same: to assign a value to a key in the specific table.
 
 Therefore, the basic syntax of tables is simple in Lua. Users can just assign a new empty table to a variable, assign a value to a variable in this table, or update some values in it, just like:
 \begin{flushleft}
@@ -272,15 +285,16 @@ Also, you can create a table by using a set of expressions like:
 \begin{flushleft}
 \tt table = \{ x = 1; y = 2, z = 3 \} \\
 \end{flushleft}
-And this statement can be transferred in a set of single expression; we will talk about it in the following chapter.
+% FIXME: Add section reference
+And this statement can be translated into a set of expressions; we will talk about this more in the Section~\ref{sec:aaa}.
 
-Tables in Lua are the primary data structure. Every type of data structure in the common programming language can be represented with tables in Lua in an efficient way, such like arrays, records or sets. One interesting thing is that, arrays and lists are usually used as the basic data structure, which also means more common in most programming language such like C and Pascal. We can still implement them using Lua tables. However, we don't take this as necessary since table is much more powerful than them. 
+Tables in Lua are the primary data structure. Almost every type of data structure can be represented with tables in Lua in an efficient way, such as arrays, records or sets. One interesting thing is that arrays and lists are usually used as the basic data structure in other languages. We can easily implement these structures using Lua tables. However, we don't take this as necessary since tables are much more powerful than them.
 
-{\bf For instance, users would barely write a search in Lua since it provides some directly accessing way in table.}
+%{\bf For instance, users would barely write a search in Lua since it provides some directly accessing way in table.}
 
-In the following of this section, we will still raise several examples showing how to implement other data structure with tables and the very core element---metatables. The reason why we will do that is that examples will make both table and metatable easy to be comprehended.
+In this section, we illustrate several examples showing how to implement other data structure with tables and metatables. These examples will also make both tables and metatables easier to be comprehend.
 
-The first instance we want to show is about arrays. We know that an array is making up by a set of values and keys, which keys are all index numbers. Therefore, giving an array using a table would not be an issue, just like the following code:
+The first instance we want to show is about arrays. We know that an array is made up of a set of values and keys, where keys are index numbers. Therefore, giving an array using a table is not an issue, as we show in the following code:
 \begin{flushleft}
 \tt array = \{\} \\
 \tt ~~for i=1, 100 do\\
@@ -289,21 +303,24 @@ The first instance we want to show is about arrays. We know that an array is mak
 \end{flushleft}
 In this program, the array would return the value of {\tt Nil} instead of {\tt 0} if the index number is out of the range (1 to 100).
 
-Besides, a data structure called object would be very important in a object-oriented programming language. Lua is not a pure object-oriented programming language. However we think that it is build to remain the basic function about object because it is often used as a embedded program in object-oriented programming language. Consequently, since there is only one type of data structure in Lua, the next example would be the implementation about object in Lua, by using tables and metatables.
+Objects are very important data structures in object-oriented programming languages. Lua does not provide objects by default, but it is easy to build them in Lua using a combination of tables and metatables.
+%to remain the basic function about object because it is often used as a embedded program in object-oriented programming language. Consequently, since there is only one type of data structure in Lua, the next example would be the implementation about object in Lua, by using tables and metatables.
 
-Before we write the example. We first introduce some basic qualities about object. According to the instruction \ref{begLua}, objects and tables have a lot of qualities in same. Actually, tables would have a state, an identity that is independent of their value, and also have a specific life cycle when being created. All of these are the same as objects.
+Before we write the example, we first introduce some basic qualities about objects. According to Jung and Brown~\cite{begLua}, objects and tables have a lot of similar qualities. Tables have a state, an identity that is independent of their values, and also have a specific life cycle when being created. All of these are behaviours shared with objects.
 
-On the contrary, objects also have some unique qualities that make it different with others such as inheritance and privacy. These unique qualities are the key that we will focus on. It is because that some other factors, which will assist us adding new behaviors in tables, might be indispensable. Based on our analysis, we take this factor as metatables.
+However, objects also have some unique qualities that make them different from tables such as inheritance and privacy. These qualities are the key that we will focus on.
+To properly implement these features, we rely on metatables to change the behavior of tables to act like objects.
 
-Apparently, we will create a table with the table constructor in the example at the very first, just like the following code shows:
+We create a table with the table constructor in the following code:
 \begin{flushleft}
 \tt parent = \{firstName = "Max", lastName = "Lin"\} \\
 \tt child = \{firstName = "Mary"\} \\
 \end{flushleft}
-And we now have two tables. It is similar to an object because of a similar structure between the tables we have mentioned above. Now, we will use metatables to model inheritance. As we know, the child class will inherit all the data in its parent class. So we can take ``index a key and get the value in the parent class when this key isn't in child class'' as the inheritance. Here would be the code:
+% FIXME: Find a reference for prototypes
+And we now have two tables. These tables are similar to objects because they share a similar structure. Now, we use metatables to model inheritance using a prototype-based approach~\cite{aaa}. As we know, the child object inherits all the data from its parent. So when we index a key we will get back the value from the parent when this key is not available in the child. Here is the code:
 \begin{flushleft}
 \tt setmetatable(child,\{\_\_index = parent\}) \\
 \tt print(child.lastName)\\
 \end{flushleft}
 
-In the code, the method {\tt setmetatble(t, mt)} sets the table {\tt mt} to {\tt t} as its metatable. In the table {\tt mt}, the method {\tt \_\_index} tells the child table to index the specific table when the key is missing. Hence for, we now deliver the basic inheritance in objects. In this program, the result would be the value {\tt Lin} since there is the key {\tt lastName} in the parent object.
+In the code, the method {\tt setmetatble(t, mt)} sets the table {\tt mt} to {\tt t} as its metatable. In the table {\tt mt}, the method {\tt \_\_index} tells the child table to index the specific table when the key is missing. Hence, we now deliver basic inheritance for our objects. In this program, the result would be the value {\tt Lin} since the key {\tt lastName} is available in the parent object.
