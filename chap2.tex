@@ -32,8 +32,9 @@ As we can see, there are
 % FIXME: Where do we remove the syntactic sugar?  In the creation of FWLua?  Be explicit.
 many different ways to represent the same statement using different syntactic sugar. Therefore, we remove all syntactic sugar in the syntax and then give a cleaner syntax about Lua as our first step.
 
-% FIXME: Remove "Chapter 5" and replace with a reference to Chapter 5.  See me if you need help.
-In Figure~\ref{fig:LuaSynFull}, we give a brief introduction about the important parts of Lua. Those parts include expressions, statements, functions, metatables. We will talk about how the full version of Lua may be desugared to our core language in Chapter 5.
+Figure~\ref{fig:LuaExp} shows the complete list of Lua expressions
+and Figure~\ref{fig:LuaStat} shows the available statements for Lua.
+We give a brief introduction about the important parts of Lua in the next section. Those parts include expressions, statements, functions, tables, and metatables. We will talk about how the full version of Lua may be desugared to our core language in Chapter~\ref{chp:luaTranslation}.
 
 
 % Commands for formatting figure
@@ -95,19 +96,27 @@ In Figure~\ref{fig:LuaSynFull}, we give a brief introduction about the important
 
 
 \section{Expressions}
-As we mentioned above, expressions cannot be used individually. However, it plays a key role in Lua since there are many key evaluation rules included in the expressions. An expression represents and will be evaluated to a value as results. We consider this as the main difference compare to a statement, which would probably change the global store during executing.
+As we mentioned above, expressions cannot be used individually. However, they play a key role in Lua since there are many evaluation rules for expressions. An expression evaluates to a value. We consider this as the main difference to statements,
+which might not produce a value.
+%which would probably change the global store during executing.
 
-Since we want to only keep the essence and make the syntax cleaner, we remove this and regard it as part of desugaring in the syntax of Lua. What is more, there are many ways to present a function definition and table constructor, and this could not be a little problem once we decide to make the syntax cleaner. To solve this, we still remove those ``sugars'' from the original syntax and only keep the most basic version. Therefore, the new version of syntax will be completely clean without any complex sugars in it.
+%Since we want to focus on the essential parts of Lua and make the syntax cleaner, we remove this and regard it as part of desugaring in the syntax of Lua. What is more, there are many ways to present a function definition and table constructor, and this could not be a little problem once we decide to make the syntax cleaner. To solve this, we still remove those ``sugars'' from the original syntax and only keep the most basic version. Therefore, the new version of syntax will be completely clean without any complex sugars in it.
 
-Figure \ref{fig:LuaExp} shows the expressions for Lua. To make it cleaner, this figure will use the way of symbol instead of verbal for presenting. We can see from that there is only one kind of expression for each type of value, and no multiple expressions (sequence expressions) is allowed in the syntax, although we can desugar sequences of expressions.
+Figure \ref{fig:LuaExp} shows the expressions for Lua.
+%To make it cleaner, this figure will use the way of symbol instead of verbal for presenting. We can see from that there is only one kind of expression for each type of value, and no multiple expressions (sequence expressions) is allowed in the syntax, although we can desugar sequences of expressions.
+%
+Values present some constant value like booleans or integers.
+Prefix expressions include variables, function calls, and parenthesized expressions.
+Since tables are the central data structure in Lua,
+getting variables from tables is an important aspect of the language.
+In Lua, variables can either be names ({\tt x}), direct table selects ({\tt e.x}), or computed table selects ({\tt e[e]})\footnote{
+Note that direct table selects are syntactic sugar for computed table selects.
+}.
+Lua supports the usual mathematical binary and unary operators.
+Finally, Lua includes blocks in function definitions, which are sequences of statements.
+%Therefore, expressions, now is including multiple statements inside. Also we can see, there is an equal sign in the node of table constructor, which would change table itself just like what assignment statements do. We can also treat this as assignment statement instead. Therefore, this issue makes us very confused about the relationship between statements and expressions in the Lua. In other words, Lua may be trying to split the expression and statement completely in case of making the syntax clean and simple. But they are just not that much independent based on our research.
 
-In addition, there are also 4 other important parts used assisting expressions. Value is to present some constant value like Booleans or Integers. Prefix is used to deliver hierarchies in need of some operations. Since there is only one basic data structure, tables, in Lua and we all think the getting variable as a key part, Variable is held separately and we will do much work on it. Finally, Operator is in need in some expressions, and there is also another reason about doing this, that is about operators in metatable as metamethods. Therefore we will treat operator as an important part and talk about it in the following chapter. 
-
-However, we still remain 3 rules for getting variables. Those are directly select, table select and table directly select. We treat them as the sugar and will cut them in the further work but not now. The only reason for remaining them here is that we don't want the variables to be represented so uncomfortably in the Lua.
-
-There is one final thing to mention. There is a portion called block in the node of Function Definition. Base on the syntax we gave before, block is a bunch of statements. Therefore, expression, which is just a part in statement, now is including multiple statements inside. Also we can see, there is an equal sign in the node of table constructor, which would change table itself just like what assignment statements do. We can also treat this as assignment statement instead. Therefore, this issue makes us very confused about the relationship between statements and expressions in the Lua. In other words, Lua may be trying to split the expression and statement completely in case of making the syntax clean and simple. But they are just not that much independent based on our research.
-
-This issue would be hard to solve since we are going to analyze expression and statement separately. Therefore, to give a clean syntax of expression, we will remain its integrality and independence as possible as we can in the following work.
+%This issue would be hard to solve since we are going to analyze expression and statement separately. Therefore, to give a clean syntax of expression, we will remain its integrality and independence as possible as we can in the following work.
 
 
 
@@ -149,12 +158,12 @@ This issue would be hard to solve since we are going to analyze expression and s
   
   \\
   \mydefhead{x ::=\qquad\qquad\qquad\qquad}{Variables}
-  \mydefcase{s}{string}
-  \mydefcase{p[e]}{table select}
-  \mydefcase{p.s}{table directly select}
+  \mydefcase{n}{name}
+  \mydefcase{p[e]}{computed table select}
+  \mydefcase{p.s}{direct table select}
   \\
-  binop ::= & + ~|~ - ~|~ * ~|~ / ~|~ .. ~|~ > ~|~ >= ~|& \mbox{\emph{Binary operators}}\\
-  \quad & ~ < ~|~ <= ~|~ == ~|~ ~= ~|~ and ~|~ or &  \\
+  binop ::= & + ~|~ - ~|~ * ~|~ / ~|~ \hat{} ~|~ \% ~|~ .. ~|~ > ~|~ >= ~|& \mbox{\emph{Binary operators}}\\
+  \quad & ~ < ~|~ <= ~|~ == ~|~ ~= ~|~ {\tt and} ~|~ {\tt or} &  \\
   \\
   unop ::= & - ~|~ not ~|~ *  & \mbox{\emph{Unary operators}} \\
   \\
@@ -166,13 +175,32 @@ This issue would be hard to solve since we are going to analyze expression and s
 
 
 \section{Statements}
-Statements form the blocks and chunks, and thus make a program using Lua. Therefore, there has to be all the functions, which Lua wants to implement in statements. To make it clear, figure \ref{fig:LuaStat} shows the whole syntax about statements in Lua. We can see many common types of statement those appear in lots of programming language such like assignment statement and function call statement. However, there are also several common types of statement do not appear in Lua. It is because Lua take them as just a single expression since it would be useless when being written individually in a program.
+Figure~\ref{fig:LuaStat} shows the syntax for statements in Lua. We can see many common types of statement that appear in lots of programming languages, such as assignment statements and function calls.
+%However, there are also several common types of statement do not appear in Lua. It is because Lua take them as just a single expression since it would be useless when being written individually in a program.
+One unusual aspect of Lua is that only statements may stand alone in a Lua program.
+%Statements form the blocks and chunks, and thus make a program using Lua.
+Therefore, all functions are considered to be both statements and expressions.
+%which Lua wants to implement in statements. To make it clear,
 
-There are totally 4 parts in the syntax of statements. Despite of expression and statement, there is also a part we think is very important called block. Actually, block is a bunch of statements. The reason we split it from statements is that there could be a return statement using reserved word ``return'' in the tail of a block as the last statement. We can see from the Figure \ref{fig:LuaStat} that the return statement is illegal in the syntax even it is very common. So we are not able to make it as a real statement.
+There are 3 parts in the syntax of statements.
+They are statements, blocks, and functions.
 
-Assignment statements are a common type of statement, because it is used to assign a value to specific variable and then make change to the global store. Both variables and values are expressions, and that connects the relationship between expressions and statements. Also, users can assign multiple values to multiple variables with only one statement by using expression lists in both side of `='. This is very convenient and interesting, but it is not so important and indispensable. Therefore we would remove the multiple expressions and find a way to desugar them further. 
+Assignment statements are used to assign a value to specific variable in the global store.
+Assignment statements in Lua work a little differently than in other languages.
+First of all, it is not possible to chain assignments, so that {\tt x = y = 3} is a syntax error.
+%Both variables and values are expressions, and that connects the relationship between expressions and statements. Also,
+However, Lua allows users to assign multiple values to multiple variables with only one statement by using expression lists on both side of `='. This is very convenient and interesting, but it is not indispensable. Therefore we remove multiple expressions and find a way to desugar them in Chapter~\ref{chp:luaTranslation}.
 
-In addition, Lua provides a bunch of condition statements. There is an IF Statement in the syntax and it is with easy-understanding way of writing. Expressions and blocks are all used in the IF Statement. Loop is a very common function in a programming language. In Lua, users can use 3 different ways to implement and control a loop such as WHILE statement, FOR statement and REPEAT statement. Since loop statement and condition statement are both easy to know, we will not introduce them further.
+In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages.
+%Expressions and blocks are all used in the IF Statement. Loop is a very common function in a programming language.
+In Lua, users have 3 different ways to implement and control a loop which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Since loops and conditional statement are both straightforward, we will not discuss them further.
+
+%Despite of expression and statement, there is also a part we think is very important called block. Actually,
+Blocks are a sequence of statements,
+which may optionally include a return statement as the last statement in the block.
+Outside of blocks, or before the last statement in a block,
+the return statement is illegal.
+%The reason we split it from statements is that there could be a return statement using reserved word ``return'' in the tail of a block as the last statement. We can see from the Figure \ref{fig:LuaStat} that the return statement is illegal in the syntax even it is very common. So we are not able to make it as a real statement.
 
 % Commands for language format
 \newcommand{\assign}[2]{{\overline{#1_i}}~{=}~{\overline{#2_j}}}
