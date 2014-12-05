@@ -29,14 +29,12 @@ In the original syntax,
 there are several different ways for getting variables.
 To make it concrete, we show a program using all three ways for getting variables:
 
-% FIXME: This is assignment.  Change the code examples.
-\begin{flushleft}
-\tt tbl = \{\}\\
-\tt tbl.x = ``Hello World!''\\
-\tt tbl[``y''] = 42\\
-\end{flushleft}
+\begin{verbatim}
+tbl
+tbl.x
+tbl["y"]
+\end{verbatim}
 
-% FIXME: Still need to revise this paragraph, but I don't understand it.
 %There is an expression of getting variable in the left side of `=' in each statement.
 The first case references a variable name
 %as a key, and it will return the value map to this key in the current scope.
@@ -49,18 +47,19 @@ It is similar to the second case, except that Lua allows an expression to dynami
 %In addition, we find that there is a reserved word already in Lua called ``\_ENV''. This word means the global table in Lua, since it only provides one data structure called ``table''. By knowing this, we can then merge all the three variable statements since the first case we mentioned above can be transferred in some way using reserved words in Lua.
 The computed table access case can simulate the other approaches.
 Referring to {\tt tbl.x} is identical to {\tt tbl['x']}.
-There is also a global table in Lua, which can be referred to by the {\tt ENV} variable.
+There is also a global table in Lua, which can be referred to by the {\tt \_ENV} variable.
 % FIXME: I'm not sure this is true -- we need to discuss.
 Therefore, instead of referring to {\tt x}, we can use {\tt \_ENV x}.
 
 As a consequence, variables are now represented by a more common format: e\textsubscript{1}[e\textsubscript{2}], which we also call table select. In this format, we only look up the variable e\textsubscript{2} in the table e\textsubscript{1} and return the value (or nil if it doesn't exist). And we can use reserved word ``\_ENV'' to represent the global table. Specifically,
-\begin{flushleft}
-\tt tbl = \{\}\\
-\end{flushleft}
-equals to
-\begin{flushleft}
-\tt \_ENV[``tbl''] = \{\}\\
-\end{flushleft}
+
+\begin{verbatim}
+tbl
+\end{verbatim}
+is equal to
+\begin{verbatim}
+_ENV["tbl"]
+\end{verbatim}
 
 %What is more, one interesting and complicated construction in expression is Table Constructor.
 Table constructors
@@ -83,7 +82,7 @@ As a result, we eliminate unary operators from the syntax of FWLua.
 The syntax of expressions in Featherweight Lua is presented in Figure~\ref{fig:FWLuaExp}.
 %This syntax captures a more subtle syntax about original Lua Expression.
 %In FWLua, we desugar the prefix expression, since it is just an expression with parentheses.
-%Since this is just a start of the project, what we want to mention is that we now decide to remove all stuffs related to function to make it simpler. Apparently, we will not abandon functions since we all know it is the most important part in a programming language. We will add it and mainly talk about it in the following chapter. Therefore, the expression syntax we give so far is very basic and simple compare to full version Lua, only with a set of operations about handling values and variables.
+%Since this is just a start of the project, we remove all stuffs related to function to make it simpler. Apparently, we will not abandon functions since we all know it is the most important part in a programming language. We will add it and mainly talk about it in the following chapter. Therefore, the expression syntax we give so far is very basic and simple compare to full version Lua, only with a set of operations about handling values and variables.
 
 
 \section{Statements}
