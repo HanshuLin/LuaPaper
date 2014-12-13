@@ -88,8 +88,8 @@ Finally, there is also a reserved function in Lua to get rid of effects of metat
 
 
 
-\section{Functions}
-Before desugaring functions in Lua, we first figure out the places those are different between Lua and FWLua. Since functions in FWLua look more like lambda calculus, there is an obvious difference, which is that each function in FWLua always take one arguments as perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
+\section{Functions}\label{sec:TraFunc}
+Before desugaring functions in Lua, we first introduce those difference in function between Lua and FWLua. Since functions in FWLua are similar as lambda calculus, there is an obvious difference, which is that each function in FWLua always take one arguments as perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
 \begin{flushleft}
 {\tt
 function (x,y) return e end
@@ -106,8 +106,10 @@ end \\
 }
 \end{flushleft}
 
-What is more, functions in Lua don't have to have a return statement, which means they might not return values as expressions do. Since there are only expressions in FWLua and all of them are returning values, we can make the return statement with reserved word ``{\tt return}'' as a key component in FWLua. According to full version of Lua, those which after the word ``return'' must return values since they must be expressions. However, this issue has been solved in FWLua with the syntax of {\tt rawset()}. Also, Figure~\ref{fig:desLua2} gives the detail about functions.
+Return statements in Lua's function are optional, which means a function might not return values like expressions. However, after the desugaring, we remain return statements in every function to fit FWLua, since statements in Lua can be desugared as some expressions in Lua. Figure~\ref{fig:desLua2} gives the detail about functions.
 
+
+%However, we can make the return statement with reserved word ``{\tt return}'' as a key component in FWLua. According to the full version of Lua, those which after the word ``return'' must return values since they must be expressions. However, this issue has been solved in FWLua with the syntax of {\tt rawset()}. Also, 
 \section{Tables}\label{sec:TranslateTabls}
 Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate a new address in the global store. And we then can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
 
@@ -117,7 +119,7 @@ To make it more concrete, the following code is from full version of Lua using t
 table = \{x=1, y=2, z=5\}\\
 }
 \end{flushleft}
-In desugaring, we make it as some simple expressions, without the effect of metatable, in the following:
+For example, if we make it as some simple expressions, without the effect of metatable, the code will be like the following:
 \begin{flushleft}
 {\tt
 rawset("\_ENV", "table", \{\}) ---new allocation\\
@@ -127,10 +129,34 @@ rawset(rawget("\_ENV", "table"), "z", 5)\\
 }
 \end{flushleft}
 
-What is more, we still have to concern about metatables and metamethods. In the above section, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Since there is a default metatable, the syntactic desugaring from Lua to FWLua would also include them. Figure \ref{fig:desLua2} gives more detail about desugaring table constructors.
+%FIXME: need a ref
+However, metatables and metamethods have to be concerned. In the section~\ref{sec:aaa}, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Since there is a default metatable, the syntactic desugaring from Lua to FWLua would also include them. Figure \ref{fig:desLua2} gives more detail about desugaring table constructors.
 
 \section{Control statements}
-We also desugar control statements, including statements of {\it if}, {\it while}, {\it for} and {\it repeat} in Lua, since they are all playing key roles in a programming language for doing computations. Figure~\ref{fig:desLua2} gives the detail in doing them.
+We also desugar control statements, including statements of {\it while}, {\it for} and {\it repeat} in Lua, since they are all playing key roles in a programming language for doing computations. Figure~\ref{fig:desLua2} gives the detail in doing them.
+
+According to the research, all the kinds of loop statements can be represent by using a set of conditional statements and recursive function calls. For example:
+\begin{flushleft}
+{\tt
+x = 0;\\
+while x ~= 10 do x = x+1; end
+}
+\end{flushleft}
+The above code is a loop statement. It asks program to increment 1 to variable {\tt x} each time, once it does not equal to 10. We can see that, a recursive computation and a conditional statement are in the loop: program have to depend whether {\tt x} is equal to 10, and then recursively execute this computation. Therefore, they can be be represent as the following:
+\begin{flushleft}
+{\tt
+function while()\\
+\quad if x~=10 do\\
+\quad\quad x = x+1; while()\\
+\quad else\\
+\quad\quad return nil\\
+\quad end\\
+end;\\
+while()\\
+}
+\end{flushleft}
+Hence all different kind of loop statements can be desugared using conditional statements. Figure~\ref{fig:desLua2} gives other desugaring rules. Also, we will talk about conditional statements ({\it if}) in Section~\ref{TLFL}, since it can be translated to a specific function.
+
 
 \begin{figure}
 \caption{Desugaring Lua 2}\label{fig:desLua2}
@@ -174,30 +200,19 @@ We also desugar control statements, including statements of {\it if}, {\it while
 \end{figure}
 
 
-\section{Translate Lua to FWLua}
-%However, we don't use this simple syntax system in FWLua because of metatable. In other words, Lua will search other tables with the input key according to the metatable and metamethod in the current table, and this would be the reason why we build a default metatable and make the syntax of getting variable as a function called {\tt rawget()}. Also, this specific function can be used recursively, because every table we defined can be found finally in the global environment.
+\section{Translate Lua to FWLua}\label{TLFL}
+Figure~\ref{fig:translation} shows all translation rules from Lua to FWLua. They also can be classified into 5 part those we have given above.
 
-%Based on the syntax of FWLua, the code above can be treated as the following code in FWLua so far:
-%\begin{flushleft}
-%{\tt
-%rawget("\_ENV","x") --raw get global variable\\
-%rawget(rawget("\_ENV","t"),"x") --the first expression returns a register/address\\
-%rawget(rawget("\_ENV","t"),"y") --the value can be constant, register and function\\
-%}
-%\end{flushleft}.
+Lua allows a sequence of statements in one program as a block. Since FWLua does't do this, sequence statements in Lua now can be translated using function representations in Lua.
 
-%Also, after introduced the system of lambda calculus, we have to also handle Boolean values including {\tt True} and {\tt False} by making them as a function. In addition, the sequence statements can be represented as some function applications. Since the symbol {\tt ;} is operational in Lua, it is necessary to make it into function. Finally, binary operators in Lua can also be redefined in the metatable and thus change the behaviors as we have mentioned. So there is a need for desugaring them from Lua to FWLua.
+We don't use this simple syntax system in FWLua because of metatable. In other words, Lua will search other tables with the input key according to the metatable and metamethod in the current table, and this would be the reason why we build a default metatable and make the syntax of getting variable as a function called {\tt rawget()}. Also, this specific function can be used recursively, because every table we defined can be found finally in the global environment.
 
-%According to the semantic of FWLua, there is only one evaluation rule about variable declaration and update, which we call it ``Table update''. In the condition, we have to transfer the above codes using the syntax of FWLua. Basically, the syntax of assignment statement is a function called {\tt rawset()} as we mentioned. In solving the desugaring issue, we need to add some conditions in the function so that it can implement functions in Lua completely, such as scope and metatable. For example, those code we gave above can be transferred like the following:
+%According to the semantic of FWLua, there is only one evaluation rule about variable declaration and update, which we call it ``Table update''. In the condition, we have to transfer the above codes using the syntax of FWLua. Basically, the syntax of assignment statement is a function called {\tt rawset()} as we mentioned. In solving the desugaring issue, we need to add some conditions in the function so that it can implement functions in Lua completely, such as scope and metatable.
 
-%\begin{flushleft}
-%{\tt
-%rawset("\_ENV", "x", 11)\\
-%rawset("\_ENV", "t", \{\})\\
-%rawset(rawget("\_ENV", "t"), "x", 62)\\
-%rawset(rawget("\_ENV", "t"), "y", 63)\\
-%}
-%\end{flushleft}
+FWLua is using lambda calculus to represent functions. As we introduced in the Section~\ref{TraFunc}, a function taking one or more arguments can possibly be decomposed in to multiple one-argument functions. By doing this in Lua, the translation rule of function from Lua to FWLua is obvious.
+
+The {\it if} statements now can be translated using lambda calculus along with the boolean type {\tt true} and {\tt false}. In the traslation rule, the concept is to let the function return former expression as True and latter expression as False value. Also, after translated {\it if} statements into lambda calculus, we have to also handle Boolean values including {\tt True} and {\tt False} by making them as a function.
+
 
 \begin{figure}
 \caption{Translation rules from Lua to FWLua}
