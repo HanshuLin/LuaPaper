@@ -1,80 +1,145 @@
 \chapter{Featherweight Lua}
-Although Lua is exquisite, its syntax is still too complex for formal reasoning. Therefore, to make it simpler for reading and analyzing, we further simplify the syntax from the full version Lua. Also, we want to call the new, simplified one {\it Featherweight Lua} (FWLua). In FWLua, We remove unnecessary syntax and make sure only essential core syntax would remain.
+Although Lua has a minimal syntax compared to most other programming languages, it is still too complex for formal reasoning. Therefore, to make it simpler for reading and analyzing, we further simplify the syntax from the full version Lua. We call the new, simplified language {\it Featherweight Lua} (FWLua). In FWLua, We remove unnecessary syntax and reduce the language to its essential core.
 
-We will start with the syntax of expressions, which are about basic variables and values. Second, the syntax of statements will be given and then be combined with expression. We also need to take the function into our consideration, since first class function would be a very special and core part in a programming language.
+%We will start with the syntax of expressions, which are about basic variables and values. Second, the syntax of statements will be given and then be combined with expression. We also need to take the function into our consideration, since first class function would be a very special and core part in a programming language.
 
-Lua splits statement and expression into two parts. However, they are still linked with each other. We may not be able to only represent the syntax of expressions or statements. Based on the research before, we treat functions, including function call and function definition, as the main bridge linking statement and expression. Therefore, we may possibly ignore the effect about function by skipping all the syntactic stuffs about functions. What it more, we split them into two tables (parts) but still including each other and we will then talk about the function in the next chapter.
+%THA FIXME: More to say here?
+Lua splits statements and expressions, though they overlap because of functions and function application.
+%We may not be able to only represent the syntax of expressions or statements.  Based on the research before, we treat functions, including function call and function definition, as the main bridge linking statement and expression. Therefore, we may possibly ignore the effect about function by skipping all the syntactic stuffs about functions. What it more, we split them into two tables (parts) but still including each other and we will then talk about the function in the next chapter.
 
 \section{Expressions}
-As we mentioned above, there are totally four parts in the syntax of full version Lua. Apparently, we want the expression just remains one big part in FWLua so that we can build an implementation by using minimum but core elements about Lua and also work on doing research against Lua based on FWLua in the future. Therefore, what we do to FWLua is to remove some parts those we think will not be the core of Lua, and then merge parts those we think can be represented and evaluated in the same way. Obviously, these methods would bring some huge changes from Lua with some side effects that we may never know. There would also be some cheatings in the new syntax and differs it from Lua. In other words, we cannot treat it as Lua itself any longer and that is the main reason we call it Featherweight Lua, which is based on Lua but differs from Lua.
+%As we mentioned above, there are totally four parts in the syntax of full version Lua. Apparently, we want the expression just remains one big part in FWLua so that we can build an implementation by using minimum but core elements about Lua and also work on doing research against Lua based on FWLua in the future. Therefore, what we do to FWLua is to remove some parts those we think will not be the core of Lua, and then merge parts those we think can be represented and evaluated in the same way. Obviously, these methods would bring some huge changes from Lua with some side effects that we may never know. There would also be some cheatings in the new syntax and differs it from Lua. In other words, we cannot treat it as Lua itself any longer and that is the main reason we call it Featherweight Lua, which is based on Lua but differs from Lua.
 
-In this section, we will further talk about how we think of simplifying the original syntax and the reason for each step.
+In this section, we discuss our expressions in FWLua and why we think these simplifications are
+remain true to the spirit of Lua.
 
-The very first thing would be constant values in expressions. It is because that the final purpose of every expression is returned as a value by evaluations. There are types of Number, String and Boolean representing a value in the original syntax. It is very obvious that these types are all constants, which means that nothing would be changed after only this type of expression is evaluated, just like a final result in every programs. Therefore, we distract those constants, treat them as a basic part that doesn’t change anything, and give them a new name called ``Constant''.
+We keep constant values in the language.
+%It is because that the final purpose of every expression is returned as a value by evaluations.
+These types include Number, String and Boolean representing values in the original syntax.
+%It is very obvious that these types are all constants, which means that nothing would be changed after only this type of expression is evaluated, just like a final result in every programs. Therefore, we distract those constants, treat them as a basic part that doesn’t change anything, and give them a new name called ``Constant''.
+%
+There is also a special expression {\tt nil}, similar to {\tt null} in Java and to both {\tt null} and {\tt undefined} in JavaScript.
+%which is equivalent to both ``null'' and `0' in Java. % This does not appear to be true.  Nil + 1 is not 1.
+%The thing we care is the result that it returns--nothing. That is the reason that we include it to the constant part.
+For simplicity, we treat {\tt nil} as a constant in our evaluation rules.
 
-Besides, we find that there is also one type of expression having the same character, which is ``nil''. ``nil'' is an interesting value in Lua, since it means both ``null'' and `0' compare to Java. The thing we care is the result that it returns--nothing. That is the reason that we include it to the constant part.
+%The second one we choose to merge is about getting variable, including mutable variables and constants.
+In the original syntax,
+%variable is a separated part that belongs to expression, for the reason that
+there are several different ways for getting variables.
+To make it concrete, we show a program using all three ways for getting variables:
 
-The second one we choose to merge is about getting variable, including mutable variables and constants. In the original syntax, variable is a separated part that belongs to expression, for the reason that there would be several different ways representing getting variables and each of them may have specific functions and limitations. To make it concrete, we would show a program using all three representing ways for getting variable in the following:
-\begin{flushleft}
-\tt tbl = \{\}\\
-\tt tbl.x = ``Hello World!''\\
-\tt tbl[``y''] = 42\\
-\end{flushleft}
+\begin{verbatim}
+tbl
+tbl.x
+tbl["y"]
+\end{verbatim}
 
-There is an expression of getting variable in the left side of `=' in each statement. The first case we use is only a string as a key, and it will return the value map to this key in the current scope. The second one would be called ``table directly select'' using `.'. This variable expression will directly get the value according the key ``x'' in the specific table ``tbl''. The last case in the program will be sort of same as the second. However, the main different is that Lua allows a variable as a key in the table, which means that we can define a key in the table only by a variable, such like {\tt tbl[x]}. The executer evaluates the variable `x’ and then returns its value at first.
+%There is an expression of getting variable in the left side of `=' in each statement.
+The first case references a variable name
+%as a key, and it will return the value map to this key in the current scope.
+The second is a direct table select, using `.'.
+This variable expression directly gets the value referenced by the key ``x'' in the specified table ``tbl''.
+The last case is an example of a computed table access.
+It is similar to the second case, except that Lua allows an expression to dynamically determine the key in the table.
+%which means that we can define a key in the table only by a variable, such like {\tt tbl[x]}. The executer evaluates the variable `x’ and then returns its value at first.
 
-In addition, we find that there is a reserved word already in Lua called ``\_ENV''. This word means the global table in Lua, since it only provides one data structure called ``table''. By knowing this, we can then merge all the three variable statements since the first case we mentioned above can be transferred in some way using reserved words in Lua.
+%In addition, we find that there is a reserved word already in Lua called ``\_ENV''. This word means the global table in Lua, since it only provides one data structure called ``table''. By knowing this, we can then merge all the three variable statements since the first case we mentioned above can be transferred in some way using reserved words in Lua.
+The computed table access case can simulate the other approaches.
+Referring to {\tt tbl.x} is identical to {\tt tbl['x']}.
+There is also a global table in Lua, which can be referred to by the {\tt \_ENV} variable.
+% FIXME: I'm not sure this is true -- we need to discuss.
+Therefore, instead of referring to {\tt x}, we can use {\tt \_ENV x}.
 
-As the consequence, variables are now represented by a more common format: e\textsubscript{1}[e\textsubscript{2}], which we also call it table select. In this format, we only look up the variable e\textsubscript{2} in the table e\textsubscript{1} and return relative value (nil if it doesn't exist). And we can use reserved word ``\_ENV'' to represent the global table. Specifically,
-\begin{flushleft}
-\tt tbl = \{\}\\
-\end{flushleft}
-equals to
-\begin{flushleft}
-\tt \_ENV[``tbl''] = \{\}\\
-\end{flushleft}
+As a consequence, variables are now represented by a more common format: e\textsubscript{1}[e\textsubscript{2}], which we also call table select. In this format, we only look up the variable e\textsubscript{2} in the table e\textsubscript{1} and return the value (or nil if it doesn't exist). And we can use reserved word ``\_ENV'' to represent the global table. Specifically,
 
-What is more, one interesting and complicated construction in expression is Table Constructor. Table Constructor could be no different as a constant, but the purpose is constructing a new domain with some scoped mutable variables within. Therefore, we distract the symbol ``\{\}'' out of constants. In this case, compiler will allocate a new scope once it meets token``\{\}''. We can also treat it as creating a new anonymous table, just as what new object does in JavaScript language.
+\begin{verbatim}
+tbl
+\end{verbatim}
+is equal to
+\begin{verbatim}
+_ENV["tbl"]
+\end{verbatim}
 
-We also find that there the unary operation and binary operation have something same. As the result, we merge them to new binary operation syntax. Then, every time we meet a unary operation expression again, we will treat it as a binary operation with two expressions e\textsubscript{1} and e\textsubscript{2} and with a Nil value in e\textsubscript{1}.
+%What is more, one interesting and complicated construction in expression is Table Constructor.
+Table constructors
+%could be no different as a constant, but the purpose is constructing
+construct a new domain with some scoped mutable variables within.
+%Therefore, we distract the symbol ``\{\}'' out of constants. In this case,
+When we invoke ``\{\}'', the compiler allocates a new scope
+and creates a new anonymous table, similar to how {\tt new} works in JavaScript.
 
-Since new binary operation syntax is found and we want to make our syntax cleaner, we also remove the portion named prefix expressions. There are some high-priority expressions in the syntax of prefix expressions such like function calls. Consequently, we give them the same priority by desugaring them in FWLua.
+%We also find that there the
+Lua supports both
+unary operators and binary operators, though it is straightforward to treat unary operators as binary operators
+with two expressions e\textsubscript{1} and e\textsubscript{2} where e\textsubscript{1} is {\tt nil}.
+As a result, we eliminate unary operators from the syntax of FWLua.
+%Then, every time we meet a unary operation expression again, we will
 
-Finally, the syntax of Expression in Featherweight Lua is presented in Figure \ref{fig:FWLuaExp}. This syntax captures a more subtle syntax about original Lua Expression. In FWLua Expression syntax, we desugar the prefix expression, since it is just an expression with parentheses. Since this is just a start of the project, what we want to mention is that we now decide to remove all stuffs related to function to make it simpler. Apparently, we will not abandon functions since we all know it is the most important part in a programming language. We will add it and mainly talk about it in the following chapter. Therefore, the expression syntax we give so far is very basic and simple compare to full version Lua, only with a set of operations about handling values and variables.
+%Since new binary operation syntax is found and we want to make our syntax cleaner, we also remove the portion named prefix expressions. There are some high-priority expressions in the syntax of prefix expressions such like function calls. Consequently, we give them the same priority by desugaring them in FWLua.
+
+% FIXME: We need to discuss splitting expressions and statements in the figures.
+The syntax of expressions in Featherweight Lua is presented in Figure~\ref{fig:FWLuaExp}.
+%This syntax captures a more subtle syntax about original Lua Expression.
+%In FWLua, we desugar the prefix expression, since it is just an expression with parentheses.
+%Since this is just a start of the project, we remove all stuffs related to function to make it simpler. Apparently, we will not abandon functions since we all know it is the most important part in a programming language. We will add it and mainly talk about it in the following chapter. Therefore, the expression syntax we give so far is very basic and simple compare to full version Lua, only with a set of operations about handling values and variables.
 
 
 \section{Statements}
-Compare to expressions, statements would be known more commonly in one programming language. Basically, every statement is used for fulfilling specific one or multiple tasks in a program and we can say that statement is the basic unit in Lua. Based on the research\cite{PIL}, there is suppose to be some principles which statements provide: assignments, control structures, function calls and variable declarations. They all seem very conventional in a programming language while being indispensable. 
+% FIXME: I think we need to eliminate this figure.
+Figure~\ref{fig:FWLuaStat} shows the syntax of statements in FWLua.
+%Compare to expressions, statements would be known more commonly in one programming language.  Basically, every statement is used for fulfilling specific one or multiple tasks in a program and we can say that statement is the basic unit in Lua.
+% FIXME: Replace AAAAAAAAAAA with author names
+According to AAAAAAAAAAA~\cite{PIL},
+% FIXME: Not following what you mean by principles.  We should discuss.
+%there is supposed to be some principles which statements provide:
+statements in Lua include assignment, control structures, function calls, and variable declarations.
+%
+%As a consequence, we now have a basic plan about how to reduce the syntax in full version of Lua.
+Our strategy for simplifying statements is to group our syntactic forms by each fundamental type of operation and then choose one syntactic form for each group.
+We also remove blocks from our syntax since we can desugar sequences of statements easily.
+%since we don't want sequence statement to be part of our syntax based one our principle of FWLua. Next, we are talking about what we think the syntax of each part is and how we did to statements in FWLua. 
 
-As a consequence, we now have a basic plan about how to reduce the syntax in full version of Lua. It is to only keep those parts for each fundamental principle and then attempt to just give one kind of syntax for each principle. We will also remove the part of statement named ``block'' in the original syntax since we don't want sequence statement to be part of our syntax based one our principle of FWLua. Next, we are talking about what we think the syntax of each part is and how we did to statements in FWLua. 
+We first discuss assignment statements.
+Every assignment statement changes the store. Based on this, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements.  There is also a form of assignment that allows using a list of expressions as either variables or values to complete multiple assignments in one statement. However, we choose the basic assignment form without lists or local scope.  The other forms can be produced with syntactic sugar.
+In Chapter~\ref{chp:luaTranslation} we review the desugaring process in more depth.
 
-The first thing we will discuss is assignments. Basically, the ultimate purpose of a programming language is to automatically complete some complex computations and thus fulfill a bunch of tasks which user allocates, and this will include some variables and storages during computing. Hence for, assignments would be fundamental and indispensable elements in programming language for assigning values and thus changing stores. 
+Lua also features a large number of control structures.
+However, these can be represented with functions,
+% FIXME: Add citation for lambda-calculus.  The TAPL book might work.
+following patterns established for the lambda calculus~\cite{aaa}.
+Therefore, we eliminate these statements from FWLua.
 
-Therefore, every assignment statement would be used to change the store whatever it looks like. Based on this, it is obvious that we can merge all types of assignment statements in one statement. According to the original syntax, there might be some differences in local assignment statement, and also it allows using a list of expressions as either variables or values to complete multiple assignments in one statement. However, we just choose the easiest way representing it without considering list and scope. Consequently, we take them as the syntactic desuagring and will introduce it in Chapter 5.
+%In addition, there is also a fundamental principle in statement called variable declaration. According to the instruction, Lua is a dynamic\cite{LTC} type programming language, which means there would not be any type declarations before the declaration statement. In other words, the compiler will decide if one statement is assignment statement of variable declaration statement and then to choose allocating new memory or just updating. It is because the format of statement between variable declaration and assignment is totally the same. In the project, we merge these two principles to only one statement.
 
-In addition, there is also a fundamental principle in statement called variable declaration. According to the instruction, Lua is a dynamic\cite{LTC} type programming language, which means there would not be any type declarations before the declaration statement. In other words, the compiler will decide if one statement is assignment statement of variable declaration statement and then to choose allocating new memory or just updating. It is because the format of statement between variable declaration and assignment is totally the same. In the project, we merge these two principles to only one statement.
+%The next step we considered is the statement of control structure. Actually, we have mentioned there is also a type named loop statement beside the control statement in the full version of Lua. They are respectively WHILE, FOR and REPEAT statement. The purpose of loop statement, apparently, is to complete a set of computations repeatedly. However, to stop a loop statement from doing too many times, there must be a controller in the head of a loop to let the compiler decide if this loop can be continued at this time. Hence for, we can now regard a loop as a set, made up with a control statement and a bunch of statements. In the project, we will let the IF statement be our basic unit of control statement since it would be the common one in a programming language.
 
-The next step we considered is the statement of control structure. Actually, we have mentioned there is also a type named loop statement beside the control statement in the full version of Lua. They are respectively WHILE, FOR and REPEAT statement. The purpose of loop statement, apparently, is to complete a set of computations repeatedly. However, to stop a loop statement from doing too many times, there must be a controller in the head of a loop to let the compiler decide if this loop can be continued at this time. Hence for, we can now regard a loop as a set, made up with a control statement and a bunch of statements. In the project, we will let the IF statement be our basic unit of control statement since it would be the common one in a programming language.
+%Basically, if we take the IF statement as a function, we will then get a good understanding about how a loop works with ``recursive funtion'' in programming language. Fortunatelly, Lua provides recursions in functions. We will talk about it in more detail in the section \ref{sec:recursions}.
 
-Basically, if we take the IF statement as a function, we will then get a good understanding about how a loop works with ``recursive funtion'' in programming language. Fortunatelly, Lua provides recursions in functions. We will talk about it in more detail in the section \ref{sec:recursions}.
+% FIXME: It is odd that we have not talked about functions up to this point.
 
-According to the above, Figure \ref{fig:FWLuaStat} shows the syntax of statements in FWLua. The syntax is simple and easy, but it is very essencial and concise. We thing this syntax has further proved the concept of FWLua: core, but exquisite.
 
-\section{Integration}
-Although we have already given the basic syntax for expression and statement in Lua, we still think that this is not enough. In Lua, statements and expressions are treated separately. In FWLua, we don't want them to be separate any more because it would make FWLua too complex. Therefore, integration is necessary for FWLua.
+%\section{Integration}
+%Although we have already given the basic syntax for expressions and statements in Lua, we still think that this is not enough. In Lua, statements and expressions are treated separately. In FWLua, we don't want them to be separate any more because it would make FWLua too complex. Therefore, integration is necessary for FWLua.
 
-Basically, the integration about expression and statement would not be so hard, for the reason that there are lots of familiars in their syntax and most of programs do not split them at all. In the project, we just pretend that every statement can be an expression, and then make some integration to merge them and thus form the whole syntax of FWLua. 
+In this project, we treat every statement as an expression for simplicity.
+However, this means that FWLua is not a true subset of Lua.
+Consider the following expressions:
 
-However, this also brings some troubles. One trouble that needs to pay attention is that the whole syntax, now, will not completely match Lua. It is obviously because that we introduced new rules in the syntax and allows something new appear in FWLua. For instance, even though expression and statement is different in JavaScript, the following statements are still allowed in its program:
 \begin{flushleft}
 \tt 3;   //A constant value\\
 \tt x;   //A variable\\
 \tt a = b = 10;   //Multiple statements\\
 \end{flushleft}
 
-However, Lua does not allow any of above in the syntax. It is because the statements return nothing instead of return values like expressions. Therefore, we may allow this issue happen and make it chaos between Lua and FWLua and we call this ``cheating''. In solving this, we plan to add extra limitations, which could prevent this issue from happening during the evaluation.
+Lua does not allow constants or variables as stand-alone statements,
+and chained assignments are not supported in Lua.
+While these are departures from Lua, we feel that they are minor discrepancies between the languages.
 
-The section \ref{sec: syntax and semantic} mainly talks about the syntax and semantic of FWLua. In addition, functions, as a bridge between expressions and statements, are also the reason for doing the integration. Although we didn't mention too much about function in this section, we mentioned that a function call could be treat as either of them in different conditions. Because of the integration, functions can be given in the syntax in the easier way.
+%Lua does not allow any of above in the syntax. It is because the statements return nothing instead of return values like expressions. Therefore, we may allow this issue happen and make it chaos between Lua and FWLua and we call this ``cheating''. In solving this, we plan to add extra limitations, which could prevent this issue from happening during the evaluation.
+
+Section \ref{sec: syntax and semantic} talks about the syntax and semantics of FWLua.
+%In addition, functions, as a bridge between expressions and statements, are also the reason for doing the integration. Although we didn't mention too much about function in this section, we mentioned that a function call could be treat as either of them in different conditions. Because of the integration, functions can be given in the syntax in the easier way.
 
 % ---------------------------[FW1][SYNTAX]Expression------------------------------
 \begin{figure}

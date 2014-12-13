@@ -1,47 +1,55 @@
 \chapter{Core works in FWLua}
-In the above chapters, we have emphatically introduced several primary parts in Lua. Expressions and statements would be simple to understand because they could be analyzed in the straight way, directly related to their syntax. However, there is still a big part in the project, which would be also very important and need to be further analyzed in the certain extension. In other words, because simply reducing syntax about statements and expression would not be so hard, the core work we mainly focus in the project is about some more essential stuff.
+% FIXME: We need to merge this with the previous chapters, so this intro may need to be deleted
+In the previous chapters, we have introduced several primary parts in Lua. Expressions and statements are simple to understand because they can be analyzed in a straightforward way.
+%, directly related to their syntax.  However, there is still a big part in the project, which would be also very important and need to be further analyzed in the certain extension. In other words, because simply reducing syntax about statements and expression would not be so hard, the core work we mainly focus in the project is about some more essential stuff.
 
 Therefore, we are going to talk about functions and metatables, which are both the key element in Lua, in more detail in the chapter. Meanwhile, we will also give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
 
 
 \section{Functions}
-Functions are used to complete a set of computations, and then return values or fulfill tasks. Basically, the definition of function is pretty straightforward: a function will take some arguments users already defined into its body thus form the closure body of the function, and then this defined function could take some values as perimeters when it is invoked for computation.
-
-Functions in Lua are also pretty standard and simple. According to this, we can easily remove those syntactic sugars in full version of Lua and create a new unified syntax about functions in FWLua. However, there are still several concepts need to be concerned based on the principles of FWLua. We will introduce the syntax of functions in FWLua specifically in this section.
-
-There are some instances showing the code in the full version of Lua about functions. To define a function, each line of the following code can be used:
-\begin{flushleft}
-\tt function foo(x) x = x + 1 return x end --normal function definition\\
-\tt foo = function (x) x = x + 1 return x end --using anonymous function\\
-\end{flushleft}
-Basically, either of the codes above delivers the same task. Also, we can invoke this function by using function call as a statement like:
-\begin{flushleft}
-\tt foo(4); -- will result 5 according to the above \\
-\end{flushleft}
+Functions are used to complete a set of computations and return a value.
+%Basically, the definition of function is pretty straightforward: a function will take some arguments users already defined into its body thus form the closure body of the function, and then this defined function could take some values as perimeters when it is invoked for computation.
+%
+%Functions in Lua are also pretty standard and simple. According to this, we can easily remove those syntactic sugars in full version of Lua and create a new unified syntax about functions in FWLua. However, there are still several concepts need to be concerned based on the principles of FWLua. We will introduce the syntax of functions in FWLua specifically in this section.
+%
+%There are some instances showing the code in the full version of Lua about functions.
+To define a function in Lua, each of the following statements can be used:
+\begin{verbatim}
+function foo(x) x = x + 1 return x end    --normal function definition
+foo = function (x) x = x + 1 return x end --using anonymous function
+\end{verbatim}
+%Basically, either of the codes above delivers the same task. Also,
+We can invoke this function as follows:
+\begin{verbatim}
+foo(4);
+\end{verbatim}
 In addition, functions in the full version of Lua provide multiple expressions in the function, both in defining arguments and returning values. For example:
-\begin{flushleft}
-\tt function add(x, y) \\
-\tt ~~local i = x + y;\\
-\tt ~~return i;\\
-\tt end\\
-\end{flushleft}
+\begin{verbatim}
+function add(x, y)
+  local i = x + y;
+  return i;
+end
+\end{verbatim}
 and also:
-\begin{flushleft}
-\tt function inc(x, y) \\
-\tt ~~x = x + 1;\\
-\tt ~~y = y + 1;\\
-\tt ~~return (x,y);\\
-\tt end\\
-\end{flushleft}
-We can see that a function can both take more than one arguments and return multiple values at the same time.
+\begin{verbatim}
+function inc(x, y)
+  x = x + 1;
+  y = y + 1;
+  return (x,y);
+end
+\end{verbatim}
+We can see that a function can both take more than one argument and return multiple values.
 
-However, concerning about FWLua, the fact of multiple expressions might be unnecessary. It is because that we want to keep FWLua as simple and core we can. What is more, multiple expression can be represented in some way using desugaring and Lambda calculus and we will talk about them specifically also in this chapter.
+However,
+%concerning about FWLua, the fact of multiple expressions might be unnecessary. It is because that
+we want to keep the syntax for FWLua as simple we can. Therefore, we represent multiple expressions through desugaring, which we discuss later in this chapter.
 
 Based on the examples above, we then choose to use the syntax of anonymous functions as our primary function syntax in FWLua. Since we have already come up with the syntax of assignment statements, we will combine it with anonymous function definition to define a function with name within. Besides, we will restrict both the argument and return value in a function to only one for decreasing unnecessary work in building the syntax. Consequently, the syntax of functions in FWLua is sort of complete so far.
 
 However, we have also raised the issue against one special statement called ``return statements''. As we mentioned above, return statements cannot really be called statements. Although Lua allows it appear individually like statements, return statements can only appear as the last statement in a block, and that would be the reason why we need to treat it especially in the function. In solving this issue, we decide to make the reserved word {\tt return} as the tail in the function and will use {\tt return nil} instead of no return statement in the block.
 
 As the result, the syntax of function would be like the following:
+% FIXME: use verbatim
 \begin{flushleft}
 \tt function x {\tt return} e {\tt end}
 \end{flushleft}
@@ -51,6 +59,7 @@ We will talk about some key factors related to the function in following section
 
 \subsection{Closures}
 Before talking about closures in Lua and FWLua, we will show some examples to help comprehending closures in functions.
+% FIXME: use verbatim
 \begin{flushleft}
 {\tt x=42\\
 function foo()\\
