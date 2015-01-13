@@ -2,17 +2,29 @@
 %NEED A PARA?
 
 \section{Syntax for Featherweight Lua}\label{sec: FWLUAsyntax}
-Expressions and statements are basic elements forming FWLua externally. What is more, we have just introduced the core part such as functions and metatables, which could form the internal work of FWLua. We now give the complete syntax of FWLua, including the function and metatables. In this section, we will specifically introduce the syntax in section \ref{sec: FWLUAsyntax} and the full version of semantic in section \ref{sec: FWLUAsemantic}.
+%Expressions and statements are basic elements forming FWLua externally. What is more, we have just introduced the core part such as functions and metatables, which could form the internal work of FWLua.
+We now give the complete syntax of FWLua, including functions and metatables. In this section, we introduce the syntax for FWLua in Section~\ref{sec: FWLUAsyntax} and the corresponding semantics in Section~\ref{sec: FWLUAsemantic}.
 
-We have given some figures showing the syntax of expressions and statements separately, and have introduced them in detail before. What is more, integrating them would not be so hard now, since we have functions as a bridge. Originally, the reason we split them is because statements will not return any value after being evaluated, while expressions always return a value as results. Therefore, we will pretend that statements will always return a value just like expressions, and will treat it as a kind of ``cheating''. However, in solving this issue, we just make those values statements return sort of nonsense.
+We have given some figures showing the syntax of expressions and statements separately, and have introduced them in detail before.
+%What is more, integrating them would not be so hard now, since we have functions as a bridge. Originally, the reason we split them is because
+Statements do not return any value after being evaluated, while expressions always evaluate to a value.
+We simplify our language by
+having statements always return a value just like expressions.
+While this is a difference from the full version of Lua,
+we feel it is a minor change that greatly simplifies the complexity
+of our semantics.
 
-The full syntax of Featherweight Lua is given by Figure \ref{fig:FW2Syx}. We can see that there are both old version expressions such like constants and binary operations, and statements. In the aspect of expression, what we remain the same would be register, constant and new allocation. We change the table select {\tt e\textsubscript{1}[e\textsubscript{2}]} into some raw function {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, which e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table. It is highly because there are some rules, or we can call them``hooks'', in the expressions of table select since we have introduced metatable. Talking about statements, a set of hooks also exists in the table assignment statements. So we just change the syntax of assignment statements during the integrating to also a raw function {\tt rawset(e\textsubscript{1},e\textsubscript{2},e\textsubscript{3})}, while e\textsubscript{1} also means the table, e\textsubscript{2} means the key and the e\textsubscript{3} means the value that we want to assign. 
+The full syntax of Featherweight Lua is given by Figure \ref{fig:FW2Syx}. We can see that there are both old version expressions such as constants and binary operations, and statements. For expressions, we keep registers, constants, and new allocations.
+Instead of table select {\tt e\textsubscript{1}[e\textsubscript{2}]}, we use the function {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, where e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table.
+Unlike table select, {\tt rawget} has no ``hooks'' that must be considered; table select can therefore be desugared using {\tt rawget}.
+A set of hooks also exists in the table assignment statements, so we instead use the raw function {\tt rawset(e\textsubscript{1},e\textsubscript{2},e\textsubscript{3})}, where e\textsubscript{1} also means the table, e\textsubscript{2} means the key and the e\textsubscript{3} means the value that we want to assign.
 
-In addition, we add syntax of function finally, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. However, since the function is mostly like lambda calculus, we will use the symbol $\lambda$ for a simpler syntax represention to make it easier to read. In other words, the syntax ``{\tt $\lambda$x.e}'' means ``{\tt function x return e end}'' in FWLua. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. 
+Finally, we add the syntax for functions, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. However, for brevity we adopt the lambda calculus symbol $\lambda$ for a simpler syntax represention to make it easier to read. In other words, the syntax ``{\tt $\lambda$x.e}'' means ``{\tt function x return e end}'' in FWLua. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. 
 
-Also, there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, which e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies. Since we have integrated statements and expressions, functions now is easy too add. In other words, we don't need to decide weather it belongs to statements or expression due to its task.
+Also, there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, which e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies.
+%Since we have integrated statements and expressions, functions now is easy too add. In other words, we don't need to decide weather it belongs to statements or expression due to its task.
 
-One final thing to mention, there would not be any Boolean value in constants. Because functions are similar to lambda calculus, the value of true and false can be transferred to some specific functions based on the lambda calculus. The reference\cite{LC} has mainly talked about what these functions look like.
+One final thing to mention, there would not be any Boolean value in constants. Because functions are similar to lambda calculus, the value of true and false can be transferred to some specific functions based on the lambda calculus. The reference~\cite{LC} has mainly talked about what these functions look like.
 
 % ----------------------------[FW2.2][SYNTAX]-----------------------------
 \begin{figure}
@@ -46,22 +58,23 @@ One final thing to mention, there would not be any Boolean value in constants. B
 \end{figure}
 
 \section{Semantics for Featherweight Lua}\label{sec: FWLUAsemantic}
-Consequently, The full big-step semantic of Featherweight Lua (evaluation rules) shows by Figure \ref{fig:FW2.1Sem}. This semantic is totally based on the syntax we introduced above. In the semantic, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' means the basic store in the runtime of FWLua. Actually, it is a table mapping register and table. Since we have mentioned that table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``register''. Secondary, the variable ``table'' is the table like store but only maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
+The full big-step semantics of Featherweight Lua (evaluation rules) is shown by Figure \ref{fig:FW2.1Sem}. In the semantics, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' is a table mapping registers to tables. Since we have mentioned that the table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``registers''. Secondary, the variable ``table'' is a table that maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
 
-In the basic evaluation rule, we can see that FWLua takes current expressions and store before evaluating and will return a value and manipulated store when it is done. Basically in Lua, expressions return values and most of statements change the store. Here we just pretend that all new expressions, including expressions and statements in Lua, will return a value and change the store. Next we will discuss every single rule in detail.
+In the basic evaluation rules, we can see that FWLua takes current expressions and stores before evaluating and will return a value and manipulated store when it is done. Basically in Lua, expressions return values and most of statements change the store. Here we just pretend that all new expressions, including expressions and statements in Lua, will return a value and change the store. Next we will discuss every single rule in detail.
 
-{\bf FW-VALUE}: It takes the value and return it, just like nothing happen. We can get that values would be our final results. In other means, there is no need to change anything when the executer meets a fixed value since it is executing using some recursive functions. 
+{\bf FW-VALUE}: It takes the value and returns it, just like nothing happen. We can get that values would be our final results. In other means, there is no need to change anything when the executer meets a fixed value since it is executing using some recursive functions. 
 
-{\bf FW-NEW}: The semantic NEW means allocating a new memory location in the store to a new table {\tt \{\}}. Therefore, an address has to be allocated when we meet the token of NEW. In addition, we add a checking phase to ensure that if the address we want to allocate is been occupied or not. Then, we will add this table to the store (register to table), with the key of new address, and return this address as the value.
+{\bf FW-NEW}: This rule allocates a new memory location in the store for a new, empty table {\tt \{\}}. This table is added to the store (register to table), with the key of the new address.  The resulting value of evaluating this expression is the new address.
 
-{\bf FW-RAWGET}: The evaluation rule of {\tt rawget()} could be pretty straight forward. Since we just treat getting variable as some function, we now have to evaluate the arguments in this function as the first step. After that, we will get the values about both key and table. The executer then will find the table in the store based on the name of table and thus find the value with the key in the table. Obviously this rule will return the value that users want to get and thus manipulate the store.
+{\bf FW-RAWGET}: The evaluation rule of {\tt rawget()} is pretty straight forward. Since we just treat getting the variable as a function, we now have to evaluate the arguments in this function as the first step. After that, we will get the values for both the key and the table. The executer then will find the table in the store based on the name of table and thus find the value with the key in the table. This rule return the value that users want to get from the store.
 
-{\bf FW-RAWSET}: {\tt rawset()} is part of similar as {\tt rawget()}: it will evaluate its 3 arguments in the body and return them as table, key and value at the first step and then attempt to find that table in the store as the second step. The difference is that the executer then will add the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as user needs: once the key in rawset function has already existed in the table, it will automatically update it.
+{\bf FW-RAWSET}: {\tt rawset()} is similar to {\tt rawget()}: it evaluates its 3 arguments in the body and returns them as a table, key, and value at the first step and then attempts to find that table in the store as the second step. The difference is that the executer then adds the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as user needs: once the key in rawset function has already existed in the table, it will automatically update it.
 
+%FIXME: Need to review the binop rules -- they seem ambiguous.  Let's discuss next time we meet.
 {\bf FW-BINOP}: There are 3 different evaluation rules bringing binary operations in FWLua: {\it RAW}, {\it LEFT} and {\it RIGHT}. Because metatables can define new behavior against binary operators, values in binary operations are no more only numbers. Therefore, the rules {\it LEFT} and {\it RIGHT} evaluate values in the left hand side (or the right hand side) to a table in binary operations. What is more, binary operators in the rules {\it LEFT} and {\it RIGHT} are treated as functions.
 %For example, multiple and division operations will be always computed before augment and minor operations, and there are still many examples like this in binary operations. All in all, the concepts of these rules are similar: it evaluates expressions on each side of operation symbol and then computes them using reserved functions in the metatable. Finally it returns the value and modifies the store. 
 
-{\bf FW-FUNC-CALL}: This rule evaluates a function application in FWLua. At the beginning, it evaluates the function name and returns the expression with format of function body. Then it evaluates the value this function applies. Finally, it will evaluate the function body with the substitution from arguments to values. 
+{\bf FW-FUNC-CALL}: This rule evaluates a function application in FWLua. At the beginning, it evaluates an expression to a function. Then it evaluates the argument of this function.  Finally, it evaluates the function body with the substitution from arguments to values. 
 
 
 % -------------------------------[FW2.1][SEMANTIC]--------------------------------
@@ -120,6 +133,7 @@ In the basic evaluation rule, we can see that FWLua takes current expressions an
 }{
   \semanticFull{{\tt rawset}(e_1,e_2,e_3)}{\sigma}{a}{\sigma'}
 }
+%FIXME: Need to review
 \ssrule{FW-BINOP-RAW}{
   \semanticFull{e_1}{\sigma}{v_1}{\sigma_1} \quad
   \semanticFull{e_2}{\sigma_1}{v_2}{\sigma'} \\
