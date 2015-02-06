@@ -27,6 +27,24 @@ For instance, Lua is used to create user interface add-ons in the popular online
 % FIXED: Add reference for LuaJIT
 In the aspect of commodities, Lua has been embedded in many devices, including the CHDK Lua interface for Canon cameras~\cite{CLFL}, UI designs for Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Lua is also used for network security applications in Cisco~\cite{CISCO} and for extensions and add-ons in the MySQL Workbench. CloudFlare, a content delivery network using Nginx, is trying further improve its performance using Lua because of the benefits of Lua~\cite{NPL} and the speed of the LuaJIT engine~\cite{LJT}.
 
+%-------------------------RE MODIFIED BY HANSHU-------------------------
+\section{What's interesting in Lua}
+As embeded language, there are several characters make Lua exquiste and unique. 
+Actually these machanisms are all indispensable in Lua, beside basic data types and data structures.
+
+Fisrt of all, Lua supports first class functions. 
+An anonymous function can be directly assigned to a variablea in Lua by regarding as no difference with common value.
+Beside, in the system of first class function, every declared function is treat as a variable with its name and value with its body~\cite{FCV}.
+In other words, once a user declare a new variable with the name of existed function, this function will be overridden due to the dynamic type programming mechanism.
+
+Also, metatables are used in Lua in term of controlling behaviors of tables.
+There are several reserved functions in a metatable can be used, which we can call them ``Metaevents''.
+Metatable delivers a fast and clean programming method by defining behaviors in tables and set hooks to common operators, such like ``+'' or ``*''.
+Metatable is so powerful in Lua.
+
+In this paper, we keep these characters and regard them as the part of core element.
+We will specifically discuss them in each chapter.
+%------------------------------------------------------------------------
 
 \section{Lua and JavaScript}
 Lua is similar in its design to the JavaScript programming language.
@@ -54,4 +72,6 @@ In this paper, we show the big-step semantics of Featherweight Lua according to 
 %Based on the research~\cite{AIOS}, operational semantics is very important for implementing an interpreter using a functional programming language. It is because the final step of sequence statements in functional programming language returns a value of the program, which truly matches the mechanism of big-step operational semantics.
 
 %There once is a paper, talking about holding a new Language based on JavaScript called Featherweight JavaScript (FWJS)\cite{FWJS}. In the paper, dynamic information flow is focused. Also, it has mentioned several key elements about JavaScript, including the whole syntax and semantics about FWJS and how did they do that from original JavaScript. What we interested is the way they do desugaring using lambda calculus and a language called LambdaScript. There are many tricks and tips that are truly helpful for this project.
+
+
 

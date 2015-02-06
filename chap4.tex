@@ -1,9 +1,15 @@
 \chapter{Operational semantics for Featherweight Lua} \label{chp: syntax and semantic}
+%---------------------------------MODIFIED by HANSHU---------------------------------
+The operational semantics of Featherweight Lua is pretty basic. There is not any hooks or control structures included in semantics. Feartherweight Lua has two unique characters: users have to exactly set or get a variable in FWLua by the exact direction, and functions in FWLua is lambda function. It is because we want to use FWLua to represent some basic machenisms in Lua. This is good for analyzing Lua
+
+We will further disscuss every syntax and semantic of FWLua in this chapter.
+
+%-------------------------------------------------------------------------------------
 %NEED A PARA?
 
 \section{Syntax for Featherweight Lua}\label{sec: FWLUAsyntax}
 %Expressions and statements are basic elements forming FWLua externally. What is more, we have just introduced the core part such as functions and metatables, which could form the internal work of FWLua.
-We now give the complete syntax of FWLua, including functions and metatables. In this section, we introduce the syntax for FWLua in Section~\ref{sec: FWLUAsyntax} and the corresponding semantics in Section~\ref{sec: FWLUAsemantic}.
+We now give the complete syntax of FWLua. In this section, we introduce the syntax for FWLua in Section~\ref{sec: FWLUAsyntax} and the corresponding semantics in Section~\ref{sec: FWLUAsemantic}.
 
 We have given some figures showing the syntax of expressions and statements separately, and have introduced them in detail before.
 %What is more, integrating them would not be so hard now, since we have functions as a bridge. Originally, the reason we split them is because
@@ -44,7 +50,7 @@ One final thing to mention, there would not be any Boolean value in constants. B
   \\
   \\
   \mydefhead{c ::=\qquad\qquad\qquad\qquad}{Constants}
-  \mydefcase{i}{integer}
+  \mydefcase{n}{number}
   \mydefcase{s}{string}
   \mydefcase{nil}{nil value}
   \\
@@ -60,7 +66,7 @@ One final thing to mention, there would not be any Boolean value in constants. B
 \section{Semantics for Featherweight Lua}\label{sec: FWLUAsemantic}
 The full big-step semantics of Featherweight Lua (evaluation rules) is shown by Figure \ref{fig:FW2.1Sem}. In the semantics, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' is a table mapping registers to tables. Since we have mentioned that the table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``registers''. Secondary, the variable ``table'' is a table that maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
 
-In the basic evaluation rules, we can see that FWLua takes current expressions and stores before evaluating and will return a value and manipulated store when it is done. Basically in Lua, expressions return values and most of statements change the store. Here we just pretend that all new expressions, including expressions and statements in Lua, will return a value and change the store. Next we will discuss every single rule in detail.
+In the basic evaluation rules, we can see FWLua takes current expressions and stores before evaluating and will return a value and manipulated store when it is done. Basically in Lua, expressions return values and most of statements change the store. Here we just pretend that all new expressions, including expressions and statements in Lua, will return a value and change the store. Next, we will discuss every rule in detail.
 
 {\bf FW-VALUE}: It takes the value and returns it, just like nothing happen. We can get that values would be our final results. In other means, there is no need to change anything when the executer meets a fixed value since it is executing using some recursive functions. 
 
@@ -70,9 +76,13 @@ In the basic evaluation rules, we can see that FWLua takes current expressions a
 
 {\bf FW-RAWSET}: {\tt rawset()} is similar to {\tt rawget()}: it evaluates its 3 arguments in the body and returns them as a table, key, and value at the first step and then attempts to find that table in the store as the second step. The difference is that the executer then adds the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as user needs: once the key in rawset function has already existed in the table, it will automatically update it.
 
-%FIXME: Need to review the binop rules -- they seem ambiguous.  Let's discuss next time we meet.
-{\bf FW-BINOP}: There are 3 different evaluation rules bringing binary operations in FWLua: {\it RAW}, {\it LEFT} and {\it RIGHT}. Because metatables can define new behavior against binary operators, values in binary operations are no more only numbers. Therefore, the rules {\it LEFT} and {\it RIGHT} evaluate values in the left hand side (or the right hand side) to a table in binary operations. What is more, binary operators in the rules {\it LEFT} and {\it RIGHT} are treated as functions.
+%---------------------------------MODIFIED by HANSHU---------------------------------
+{\bf FW-BINOP}: The evaluation rule of binary operation is pretty straightforward. FWLua takes two operands in each side of the operator, evaluates them to values, and then calculate them depend on different operators.
+However, different operators may be used in different data types, such like {\tt ..} for strings and {\tt +} for numbers. Therefore, there are two functions used for the type checking against operands: {\tt validL(c, op)} for the left hand side and {\tt validR(c, op)} for another side. The evaluation will be done only if the types of both operands are valid.
+What is more, the operands in FWLua must be a constant (Number, Boolean, String). It is because tables in Lua need metatables to control their behavior in binary operations. We will place this issue in the desugaring phase and further talk about how we transfer binary operations for table in Lua into FWLua in the section ~\ref{sec:TranslateTabls}.
 %For example, multiple and division operations will be always computed before augment and minor operations, and there are still many examples like this in binary operations. All in all, the concepts of these rules are similar: it evaluates expressions on each side of operation symbol and then computes them using reserved functions in the metatable. Finally it returns the value and modifies the store. 
+
+%-------------------------------------------------------------------------------------
 
 {\bf FW-FUNC-CALL}: This rule evaluates a function application in FWLua. At the beginning, it evaluates an expression to a function. Then it evaluates the argument of this function.  Finally, it evaluates the function body with the substitution from arguments to values. 
 
@@ -94,6 +104,8 @@ In the basic evaluation rules, we can see that FWLua takes current expressions a
   \sigma & \in & {Store} \quad  & = & \quad {register} ~\rightarrow ~{table} \\
   T & \in & {Table} \quad  & = & \quad {string} ~\rightarrow ~{value} \\
   f & \in & {Function} \quad & ::= & \quad function \\
+  a & \in & {Register} \quad & ::= & \quad string~ \\
+  c & \in & {Constant} \quad & ::= & \quad number~|~string~ \\
   v & \in & {Value} \quad & ::= & \quad constant~|~ register ~|~ f~ \\
   x & \in & {Name} \quad & ::= & \quad string 
   \\
@@ -116,51 +128,34 @@ In the basic evaluation rules, we can see that FWLua takes current expressions a
 
 \ssrule{FW-RAWGET}{
   \semanticFull{e_1}  {\sigma}    {a}  {\sigma_1} \quad
-  \semanticFull{e_2}  {\sigma_1}    {s}  {\sigma'} \\
+  \semanticFull{e_2}  {\sigma_1}    {x}  {\sigma'} \\
   T = \sigma'(a)\quad
-  v = T(s)\\
+  v = T(x)\\
   
 }{
   \semanticFull {{\tt rawget}(e_1,e_2)} {\sigma}   {v} {\sigma'}
 }
 \ssrule{FW-RAWSET}{
   \semanticFull{e_1}{\sigma}{a}{\sigma_1} \quad
-  \semanticFull{e_2}{\sigma_1}{s}{\sigma_2} \quad
+  \semanticFull{e_2}{\sigma_1}{x}{\sigma_2} \quad
   \semanticFull{e_3}{\sigma_2}{v}{\sigma_3} \\
   T = \sigma_3[a] \quad
-  T' = T~+~(s := v) \\
+  T' = T~+~(x := v) \\
   \sigma' = \sigma_3[a:=T']
 }{
   \semanticFull{{\tt rawset}(e_1,e_2,e_3)}{\sigma}{a}{\sigma'}
 }
-%FIXME: Need to review
-\ssrule{FW-BINOP-RAW}{
-  \semanticFull{e_1}{\sigma}{v_1}{\sigma_1} \quad
-  \semanticFull{e_2}{\sigma_1}{v_2}{\sigma'} \\
-  v = v_1 ~op~ v_2
+\ssrule{FW-BINOP}{
+  \semanticFull{e_1}{\sigma}{c_1}{\sigma_1} \quad
+  \semanticFull{e_2}{\sigma_1}{c_2}{\sigma'} \\
+  {\tt validL}(c_1, op) \quad
+  {\tt validR}(c_2, op) \\
+  c = c_1 ~op~ c_2
 }{
-  \semanticFull{e_1 ~op~ e_2}{\sigma}{v}{\sigma'}
-}
-\ssrule{FW-BINOP-LEFT}{
-  \semanticFull{e_1}{\sigma}{T}{\sigma_1} \quad
-  \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
-  m = T[{\tt ``{\_}MT"}]\quad
-  f = m[{\tt translate}(op)]\\
-   \semanticFull{(f(T))(v_1)}  {\sigma_2}    {v_2} {\sigma'} \\
-}{
-  \semanticFull{e_1 ~op~ e_2}{\sigma}{v_2}{\sigma'}
-}
-\ssrule{FW-BINOP-RIGHT}{
-  \semanticFull{e_1}{\sigma}{v}{\sigma_1} \quad
-  \semanticFull{e_2}{\sigma_1}{T}{\sigma_2} \\
-  m = T[{\tt ``{\_}MT"}]\quad
-  f = m[{\tt translate}(op)]\\
-   \semanticFull{(f(v))(T)}  {\sigma_2}    {v} {\sigma'} \\
-}{
-  \semanticFull{e_1 ~op~ e_2}{\sigma}{v}{\sigma'}
+  \semanticFull{e_1 ~op~ e_2}{\sigma}{c}{\sigma'}
 }
 \ssrule{FW-FUNC-CALL}{
-  \semanticFull{e_1}{\sigma}{\aFunction{x}{e}}{\sigma_1} \\
+  \semanticFull{e_1}{\sigma}{\aFunction{x}{e}}{\sigma_1} \quad
   \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
   \semanticFull{e[x:=v_1]}{\sigma_2}{v}{\sigma'} 
 }{
