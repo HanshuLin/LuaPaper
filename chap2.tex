@@ -2,10 +2,11 @@
 We introduce the syntax for the full version of Lua in this chapter. As mentioned previously, Lua is an extension programming language, and therefore its syntax is relatively simple. However, there are still several parts which can cause confusion in Lua.
 
 \section{Syntax in Lua}
-Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure.  Lua splits statements and expressions and thus does not allow expression to appear individually in one line of code.
+Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure.  Lua splits statements and expressions and thus does not allow an expression to appear individually in one line of code.
 
 Every program can be thought as a block. A block is a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
 
+%FIXME: Add in an example expression that would be a valid program in JS but not in Lua.
 Next, we will discuss two important elements in Lua separately, which are expressions and statements.
 Expressions and statements are separated and partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of a statement and cannot stand alone in a program. However, note that function declaration and function application are considered both statements and expressions.
 
@@ -79,8 +80,9 @@ Finally, Lua includes blocks in function definitions, which are sequences of sta
   binop ::= & + ~|~ - ~|~ * ~|~ / ~|~ \hat{} ~|~ \% ~|~ .. ~|~ > ~|~ >= ~|& \mbox{\emph{Binary operators}}\\
   \quad & ~ < ~|~ <= ~|~ == ~|~ ~= ~|~ {\tt and} ~|~ {\tt or} &  \\
   \\
-  unop ::= & - ~|~ not ~|~ *  & \mbox{\emph{Unary operators}} \\
+  unop ::= & - ~|~ {\tt not} ~|~ *  & \mbox{\emph{Unary operators}} \\
   \\
+  %FIXME: Blocks need to be defined
   \mydefhead{block \qquad\qquad\qquad\qquad}{Blocks}
 \end{array}
 \]
@@ -96,9 +98,10 @@ Therefore, all functions are considered to be both statements and expressions.
 There are 3 parts in the syntax of statements.
 They are statements, blocks, and functions.
 
-Assignment statements are used to assign a value to specific variable in the global store.
+Assignment statements are used to assign a value to a specific variable in the global store.
 Assignment statements in Lua work a little differently than in other languages.
 First of all, it is not possible to chain assignments, so that {\tt x = y = 3} is a syntax error.
+%FIXME: Show an example of assigning multiple values to multiple variables.  In JS, I believe this is known as "destructuring assignment".  Is the same term used in Lua?
 However, Lua allows users to assign multiple values to multiple variables with only one statement by using expression lists on both side of `='. This is very convenient and interesting, but it is not indispensable. Therefore we remove multiple expressions and find a way to desugar them in Chapter~\ref{chp:luaTranslation}.
 
 In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages.
@@ -159,7 +162,7 @@ This section discusses those differences in more detail.
 
 Based on the research \cite{PIL}, we think that there are at least two main purposes of using functions in programming languages: to produce some side effect, or to return a value after being computed. According to this, we can use a function call as a statement in the former case and regard it as an expression in the latter one. However, a given function call may serve both purposes, depending on the function's definition.
 
-Lua provides anonymous function, which means that a function definition expression will return itself as the result. Basically, a function in this case is an expression that evaluates to a closure.
+Lua provides anonymous functions, which means that a function definition expression will return itself as the result. Basically, a function in this case is an expression that evaluates to a closure.
 
 One important aspect of functions in Lua is that they are first-class values,
 meaning that it is possible to support functional programming paradigms.

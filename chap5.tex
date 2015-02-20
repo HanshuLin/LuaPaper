@@ -7,42 +7,47 @@
 \chapter{Lua to Feather Weight Lua}
 \label{chp:luaTranslation}
 
-We have introduced the full syntax and semantics of FWLua in Chapter~\ref{chp:CoreFWLua}. We can see that FWLua is much core of the full version of Lua, and many differences between them now have raise.
-However, our purpose is to let FWLua work like Lua with only these core features.
-In this chapter, we will mainly discuss how FWLua works like Lua by regarding syntactic desugaring as a bridge between FWLua and Lua. Since there are many syntactic sugars in Lua, we first discuss how to desugar in Lua to let the code fit our FWLua in the future. Secondly we give some translation rules from Lua to FWLua.
+We have introduced the full syntax and semantics of FWLua in Chapter~\ref{chp:CoreFWLua}. We can see that FWLua is a much smaller language than the full version of Lua, with many differences between them.
+However, our purpose is to let FWLua capture the essence of Lua with only these core features.
+In this chapter, we discuss how FWLua works like Lua by showing how syntactic desugaring can be used to convert between FWLua and Lua. Since there are many additional features in Lua, we first discuss how to desugar in Lua to let the code fit FWLua. Secondly we give some translation rules from Lua to FWLua.
 
-There are several important parts we focus in desugaring Lua. First of all, getting variable is taken into the consideration. Secondly, Lua allows many different ways representing variable update and declaration in different conditions and scopes. We will simplify them. We also concern functions because some unique qualities in functions. Tables, in addition, need to be focused since they are the primary data structure with metamethods and metatables in both Lua and FWLua. Finally, we discuss about desugaring control statements. 
+There are several important parts we focus on in desugaring Lua. First of all, getting variables is taken into consideration. Secondly, Lua allows many different ways of representing variable updates and declarations in different conditions and scopes. We also consider functions because there are some different qualities for functions in the full Lua language. Tables, in addition, need to be discussed since they are the primary data structure with metamethods and metatables in both Lua and FWLua. Finally, we discuss how we may desugar control statements. 
 
-We will discuss those parts in detail, along with examples, in following sections.
+We will discuss those parts in detail, along with examples, in the following sections.
 
 
 \section{Variable select}
-Selecting variable is usually used for computations to get a user defined value. Generally speaking, getting variables in a common programming language is easy and straightforward: users simply write a variable, as the key, for getting its value. For example, the following expressions used in Lua would stand for ``getting a value'':
+Selecting variables is used for computations to get a user defined value. Generally speaking, getting variables in a common programming language is easy and straightforward: users simply write a variable as the key for getting its value. For example, the following expressions used in Lua would stand for ``getting a value'':
 
 \begin{verbatim}
-x ---get value of x
-t["x"] ---value of key ``x'' in table t
-t.y ---value of key ``y'' in table t
+x ---get the value of x
+t["x"] ---value of key "x" in table t
+t.y ---value of key "y" in table t
 \end{verbatim}
 
 Every variable in Lua has its own field. 
-The first line of the example has not field declaration. This is what we called ``syntactic sugar''. To normalize it, we need to give a field name to that variable to make it clear.
+The first line of the example has no associated table.
+%This is what we called ``syntactic sugar''.
+To normalize it, we need to give a table name to that variable to make it clear.
+Lua provides a reserved table, {\tt \_ENV} to represent the global table. Therefore, every variable now can have a table.
 
-Lua even provides a reserved table, {\tt \_ENV} to represent the global field. Therefore, every variable now can have a field, including global variable. The normal format, in Lua, is {\tt e[``e'']}. 
-The expression {\tt t.y} is also a syntactic sugar with key {\tt y} since the key is string type in the table. After we reduce all sugars, all variable select expressions in Lua can be represents as the format {\tt e[e]}, such as the following:
+The normal format, in Lua, is {\tt e["e"]}. 
+The expression {\tt t.y} is syntactic sugar with key {\tt y} since the key is the string type in the table. After we desugar these expressions, all variable select expressions in Lua can be represents as the format {\tt e[e]}, such as the following:
 
 \begin{verbatim}
-_ENV["x"] ---get value of x
-t["x"] ---value of key ``x'' in table t
-t["y"] ---value of key ``y'' in table t
+_ENV["x"] ---get the value of x
+t["x"] ---value of key "x" in table t
+t["y"] ---value of key "y" in table t
 \end{verbatim}
 
-Lua provides metamethods and metatables in table constructors. The metamethod {\tt \_\_index} points to a fallback table. Once the key users want to index is not available in current table, such metamethod in this table will be triggered and thus point to another table. However, there is a reserved function {\tt rawget(t, k)} in Lua, which will index the key {\tt k} in the table {\tt t} by ignoring its metatable. That is also the reason why we have a very strange syntax in FWLua.
+Lua provides metamethods and metatables in table constructors. The metamethod {\tt \_\_index} points to a fallback table. If the key that users want to index is not available in the current table, this metamethod is triggered. However, there is a reserved function {\tt rawget(t, k)} in Lua, which will index the key {\tt k} in the table {\tt t} and ignore the hook in its metatable.
+%That is also the reason why we have a very strange syntax in FWLua.
 
 \section{Variable update \& declaration}
 Variable update and declaration are two key procedures in a programming language. 
-In these two different procedures, one or more variables are declared or updated in the specific scope. There are many ways of defining variables in Lua, even including declaring multiple variables in one statement. Before we discuss about desugaring, the following example gives each way of doing variable declaration and updating.
+In these two different procedures, one or more variables are declared or updated in the specific scope. There are many ways of defining variables in Lua, even including declaring multiple variables in one statement. Before we discuss desugaring, the following example gives each way of doing variable declaration and updating.
 
+%FIXME: Not clear what the difference is between the first two cases
 \begin{verbatim}
 x = 11 ---global variable declaration
 x = 12 ---variable update
@@ -53,12 +58,17 @@ local f = "Hello" ---variable declaration in scope
 
 Direct table select in Lua is treated as a syntactic sugar, and we desugar it to computed table select. 
 Multiple variable declarations can be represented using a set of single assignment statements. 
-The local variable declaration is more complicated. Lua actually finds out which scope, or which table, should the variable be set in a fixed order. Since Lua is lexical scope, which means the scope of a declared variable is immutable, we make a reserved table for every defined scope to store local variables in FWLua. Furthermore, FWLua will transfer every scope in Lua into a table, including blocks, functions and global variables. We define a reserved table in FWLua named {\it \_local} to provide local scope, and a reserved table {\it \_outer} to provide outer scope in FWLua.
+The local variable declaration is more complicated. Lua actually finds out which scope, or which table, should the variable be set in a fixed order.
+%Since Lua is lexical scope, which means the scope of a declared variable is immutable,
+To handle local variables,
+we make a reserved table for every defined scope to store local variables in FWLua. Furthermore, FWLua will transfer every scope in Lua into a table, including blocks, functions and global variables. We define a reserved table in FWLua named {\it \_local} to provide local scope, and a reserved table {\it \_outer} to provide outer scope in FWLua.
 
 There is also a reserved function in Lua to get rid of effects of metatables in setting variables, which is {\tt rawset(t, k, v)}. This is the reason we build our syntax in FWLua using this format, and will then desugar Lua to FWLua, followed by telling mechanisms in Lua.
-
-The figure ~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua. One thing needs to mention: the control structure and function call also need to be desugar into FWLua. To keep the figure easy to understand, we therefore remain them and will mainly discuss about them in following sections.
-For instance:
+Figure~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua.
+%Control structures and function calls also need to be desugared into FWLua.
+%To keep the figure easy to understand, we therefore remain them and will mainly discuss about them in following sections.
+%For instance:
+An example of decoding assignments in Lua to FWLua is shown below.
 \begin{verbatim}
 local x = 12  -- Lua, in the scope of a
 rawset(rawget(a, "_local"), "x", 12) --desugared in FWLua
@@ -78,7 +88,7 @@ rawset(rawget(a, "_local"), "x", 12) --desugared in FWLua
      }
 \desugar{e_1.e_2}{e_1[e_2]}
 \desugar{e.x}{e[``x"]}
-\desugar{x}{a.x}
+\desugar{x}{a.x} %FIXME: Need to discuss this case -- not sure what 'a' is
 \end{array}\]
 
 {\bf Variable Declaration \& Update:}\[
@@ -93,25 +103,25 @@ rawset(rawget(a, "_local"), "x", 12) --desugared in FWLua
      \quad f(e_1,e_2,e_3)\\ 
      {\tt end}\\
 }
-\desugar{e_1.e_2=e_3}{e_1[e_2] = e_3}
+\desugar{e_1.e_2=e_3}{e_1[e_2] = e_3} %FIXME: I don't think you need this case.  Let's discuss
 \desugar{e_1.x=e_2}{e_1[``x"] = e_2}
-\desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}}
-\desugar{{\tt local}~x=e~(in~a)}{a.\_local.x = e;}
+\desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}} %FIXME: Need to discuss
+\desugar{{\tt local}~x=e~(in~a)}{a.\_local.x = e;} %FIXME: Need to discuss
 
 \end{array}\]
 \end{figure}
 
 \section{Tables and Metatables}\label{sec:TranslateTabls}
 Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate and then be evaluated as a new address in the store. 
-However, the syntax {\tt rawset(t,s,v)} in FWLua will also be evluated as an address, just as what this function does in Lua.  We thus can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
+However, the syntax {\tt rawset(t,s,v)} in FWLua will also be evaluated as an address, just as this function does in Lua.  We thus can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
 
-To make it more concrete, the following code is from full version of Lua using table constructor:
+To make it more concrete, the following code is from the full version of Lua using table constructor:
 
 \begin{verbatim}
 table = {x=1, y=2}
 \end{verbatim}
 
-Basically, Lua constructs a table without any metatable by default. Since FWLua is pretty basic, we can represent this example by a set of rawset syntax, just like the following:
+Basically, Lua constructs a table without any metatable by default. In FWLua, we represent this example by a set of rawset statements, just like the following:
 
 \begin{verbatim}
 rawset(_ENV, "table", {}) ---new allocation
@@ -124,9 +134,10 @@ Or, because rawset in FWLua can also return that address, we can use a sequence 
 rawset(rawset(rawset(_ENV, "table", {}) , "x", 1), "y", 2)
 \end{verbatim}
 
-However, metatables and metamethods have to be concerned. In the section~\ref{sec: LuaTable}, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Therefore, we reserve a table with the name of {\tt \_metatable} to represent metatables in Lua. There are also two functions, {\tt setmetatable(t, mt)} and {\tt getmetatable(t)}, highly related to table constructor. Obviously we can desugar them simply using {\tt rawset}, {\tt rawget} and {\tt \_metatable} in FWLua.
+However, metatables and metamethods have to be considered. In Section~\ref{sec: LuaTable}, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Therefore, we reserve a table with the name of {\tt \_metatable} to represent metatables in Lua. There are also two functions, {\tt setmetatable(t, mt)} and {\tt getmetatable(t)}, highly related to table constructor. We can desugar them by using {\tt rawset}, {\tt rawget}, and {\tt \_metatable} in FWLua.
 
-Figure ~\ref{fig:desLuaTable} show how to transfer Lua into FWLua about table constructers. It is noteworthy that, what a rawset expression in FWLua returns is an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
+%FIXME: Interesting point, but we need to think on the wording.  Let's discuss.
+Figure ~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, what a rawset expression in FWLua returns is an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
 
 \begin{figure}
 \caption{Desugaring Lua Table}\label{fig:desLuaTable}
@@ -136,12 +147,12 @@ Figure ~\ref{fig:desLuaTable} show how to transfer Lua into FWLua about table co
 \desugar{t = \{\overline{e_i = v_j}\}}{{\tt rawset}(...{\tt rawset}({\tt rawset}(a,``t", \{\}), e_1, v_1)...)}
 \desugar{{\tt setmetatable}(t, mt)}{{\tt rawset}(a,``\_metatable", mt)}
 \desugar{{\tt getmetatable}(t)}{{\tt rawget}(a,``\_metatable")}
-\desugar{t_1~{\tt op}~t_2}{(({\tt rawget}({\tt rawget}(a,``\_metatable"),~{\tt op}))(t_1))(t_2)}
+\desugar{t_1~{\it op}~t_2}{(({\tt rawget}({\tt rawget}(a,``\_metatable"),~{\it op}))(t_1))(t_2)}
 \end{array}\]
 \end{figure}
 
 \section{Functions and control structures}\label{sec:TraFunc}
-Before desugaring functions in Lua, we first introduce those difference in function between Lua and FWLua. Since functions in FWLua are similar as lambda calculus, there is an obvious difference, which is that each function in FWLua always take one arguments as perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
+Before desugaring functions in Lua, we first introduce those differences between functions in Lua and in FWLua. Since functions in FWLua are similar to lambda calculus, there is an obvious difference, which is that each function in FWLua always take exactly one argument as its perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
 
 \begin{verbatim}
 function (x,y) return e end
@@ -157,19 +168,28 @@ function (x) return
 end
 \end{verbatim}
 
-Return statements in Lua's function are optional, which means a function might not return values like expressions. However, we remain return statements in every function to fit FWLua, since statements in Lua can be desugared as some expressions in FWLua. 
+%FIXME: Note that applying these functions is slightly different, so show that as well.
 
-Further more, a function in Lua might have its own scope and supports local variables. 
-Since we don't provide local variables to functions in FWLua, we now treat tha local scope as a table storing in the right location.
-Also, table is the primary data structure in FWLua. So we translate every funtion in Lua to a table, with  reserved table of basic informations. There are four reserved variables must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} is a table for variables in local enviroment; {\tt \_arg} is also a table storing arguments of the function; {\tt \_outer} is an address pointing to the outer scope; and {\tt \_call} is a function to store the body of the function. There is an example showing this in the appendix ~\ref{app:function}.
+Return statements in Lua's function are optional, which means a function might not return values like expressions. However, return statements are required in every function in FWLua.
+Furthermore, a function in Lua might have its own scope and supports local variables. 
 
-Also, lambda function is much powerful. Lambda function applications can be used to represent a sequence of  statement. We therefore translate a sequence statements into a functions in FWLua. Lambda functions can also be used to represent control structures and boolean value. We will discuss about it in the nexe section.
+Since we don't provide local variables to functions in FWLua, we now treat the local scope as a special table.
+To capture additional information about Lua functions,
+we translate every function in Lua to a table with fields for basic information about the function. There are four reserved variables that must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} is a table for variables in the local enviroment; {\tt \_arg} is also a table storing the arguments of the function; {\tt \_outer} is an address pointing to the outer scope; and {\tt \_call} is a function to store the body of the function. There is an example in Appendix~\ref{app:function}.
 
-Figure~\ref{fig:desLuaFunc} gives the detail about functions. Same as above, the results of the translation should be all made of FWLua syntax. However, we translated them partially and use lambda format to represent functions in FWLua. This is for make the figure cleaner and easier to understand.
+Lambda function applications can be used to represent a sequence of  statements. We therefore translate sequences of statements into functions in FWLua. Lambda functions can also be used to represent control structures and boolean values, which we discuss in the next section.
+
+Figure~\ref{fig:desLuaFunc} gives the rules for translating functions. Same as above, the results of the translations are all in FWLua syntax, or in other constructs that we define.
+%However, we translated them partially and use lambda format to represent functions in FWLua. This is for make the figure cleaner and easier to understand.
 
 \subsection{Control structures}
-Control structures can be showes as a set of lambda functions. 
-We can treat the {\tt ture} as return the first value, and treat {\tt false} as return the second value. The syntax is like following:
+Control structures can be defined in terms of a set of lambda functions. 
+We can treat the constant {\tt true} as a function taking 2 parameters\footnote{
+  More strictly speaking, {\tt true} is a function that takes one parameter
+  and returns another function that takes one parameter and returns
+  the argument passed to the outer function.
+}
+and returning the first value, and treat {\tt false} as a function taking 2 parameters and returning the second value. The syntax is as follows:
 
 \begin{verbatim}
 function (x) return 
@@ -185,9 +205,9 @@ function (x) return
 end  --False
 \end{verbatim}
 
-Based on the facts of true and false, we now can translate the basic control structure, {\tt if} statement, in Lua into a complicated reserved lambda function in FWLua. The reference ~\cite{TAPL} shows us the detail about translating control structure statements into lambda functions.
+Using these constructs for true and false, we now can translate the basic control structure in Lua, the {\tt if} statement, into a complicated reserved lambda function in FWLua. The reference~\cite{TAPL} shows us the details about translating control structure statements into lambda functions.
 
-According to out analyzing, all the kinds of loop statements can be represent by using a set of conditional statements and recursive function calls. For example:
+According to our analysis, all forms of loop statements in Lua can be represented by using a set of conditional statements and recursive function calls. For example:
 
 \begin{verbatim}
 x = 0;
@@ -216,6 +236,7 @@ Hence all different kind of loop statements can be desugared using conditional s
 \desugar{e_1{\tt ;}~e_2}{(\aFunction{a}{e_2})(e_1)}
 \desugar{{\tt function}~f(x,y)~e~{\tt end}}{f = \{ {\tt ``\_local"} = \{\}, {\tt ``\_outer"} = a,}
 \desugarline{{\tt ``\_arg"} = \{x, y\}, {\tt ``\_call"} = \aFunction{x}{\aFunction{y}{e}}\}}
+%FIXME: Not following what ... stands for here.
 \desugar{f(\overline{e_i})}{(...(f.\_call)(f.\_arg = e_1)...)(f.\_arg = e_i)}
 \end{array}\]
 
@@ -232,12 +253,14 @@ Hence all different kind of loop statements can be desugared using conditional s
 \desugar{{\tt while}~e_1~{\tt do}~e_2~{\tt end}}{
     {\tt function}~f()
 }
+%FIXME: I think e2;f should be e2;f().  Do you agree?
 \desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f~{\tt else}~{\tt return}~{\tt nil}~{\tt end}\\
 {\tt end};f()
 }
 \desugar{{\tt repeat}~e_1~{\tt until}~e_2}{
    {\tt while}~{\tt not}~e_2~{\tt do}~e_1~{\tt end}\\
 }
+%FIXME: I have some questions on the for loop -- let's discuss
 \desugar{{\tt for}~x=e_1~{\tt ,}~e_2~{\tt ,}~e_3~{\tt do}~e_4~{\tt end}}{
     {\tt function}~f()
 }

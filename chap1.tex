@@ -12,7 +12,7 @@ In our research on Lua~\cite{LRM}, we have identified several features as centra
 
 \section{History of Lua}
 At the beginning, there was a programming called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. In 1993, there were already some lightweight languages, but
-% FIXME: what does data description
+% FIXME: what does data description mean?
 none of them provided data description. Therefore, Lua was created without the need of type declaration to satisfy this requirement~\cite{EOL}.
 
 With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes including the simplification of the semantics for table constructors,
@@ -28,21 +28,21 @@ For instance, Lua is used to create user interface add-ons in the popular online
 In the aspect of commodities, Lua has been embedded in many devices, including the CHDK Lua interface for Canon cameras~\cite{CLFL}, UI designs for Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Lua is also used for network security applications in Cisco~\cite{CISCO} and for extensions and add-ons in the MySQL Workbench. CloudFlare, a content delivery network using Nginx, is trying further improve its performance using Lua because of the benefits of Lua~\cite{NPL} and the speed of the LuaJIT engine~\cite{LJT}.
 
 %-------------------------RE MODIFIED BY HANSHU-------------------------
-\section{What's interesting in Lua}
-As embeded language, there are several characters make Lua exquiste and unique. 
-Actually these machanisms are all indispensable in Lua, beside basic data types and data structures.
+\section{Interesting features of Lua}
+As an embedded language, there are several characters make Lua exquisite and unique. 
+Actually these mechanisms are all indispensable in Lua, beside basic data types and data structures.
 
-Fisrt of all, Lua supports first class functions. 
-An anonymous function can be directly assigned to a variablea in Lua by regarding as no difference with common value.
-Beside, in the system of first class function, every declared function is treat as a variable with its name and value with its body~\cite{FCV}.
-In other words, once a user declare a new variable with the name of existed function, this function will be overridden due to the dynamic type programming mechanism.
+First of all, Lua supports first class functions.
+An anonymous function can be directly assigned to a variable in Lua just like any other value.
+Beside, in the system of first class functions, every declared function is treat as a variable with its name and value with its body~\cite{FCV}.
+In other words, once a user declares a new variable with the name of an existing function, this function will be overridden due to the dynamic type programming mechanism.
 
-Also, metatables are used in Lua in term of controlling behaviors of tables.
-There are several reserved functions in a metatable can be used, which we can call them ``Metaevents''.
-Metatable delivers a fast and clean programming method by defining behaviors in tables and set hooks to common operators, such like ``+'' or ``*''.
-Metatable is so powerful in Lua.
+Also, metatables are used in Lua to control the behavior of tables.
+There are several reserved functions in a metatable, which we can call ``Metaevents''.
+Metatables delivers a fast and clean programming method by defining behaviors in tables and setting hooks for common operators, such as ``+'' or ``*''.
+%Metatable is so powerful in Lua.
 
-In this paper, we keep these characters and regard them as the part of core element.
+In this paper, we keep these features and regard them as part of the core element.
 We will specifically discuss them in each chapter.
 %------------------------------------------------------------------------
 
@@ -59,8 +59,10 @@ but it differs in that it has a prototype-based object system.
 Lua's combination of tables and metatables provide similar functionality,
 but with a noticeably different feel.
 
-Guha et al.~\cite{EOJS} show an alternate approach for reducing JavaScript to a core calculus. The authors also give several models, desugaring processes, and a small-step operational semantics. Since our project is based on big-step operational semantics, this paper will highly give us a lot of inspirations. There is also an implementation that we can study.
+Guha et al.~\cite{EOJS} show an alternate approach for reducing JavaScript to a core calculus. The authors also give several models, desugaring processes, a small-step operational semantics, and an implementation.
+%Since our project is based on big-step operational semantics, this paper will highly give us a lot of inspirations. There is also an implementation that we can study.
 
+%FIXME: Let's talk about this section at the next meeting.
 \section{Operational semantics}
 Operational semantics~\cite{AIOS} are a set of rules defining the behavior of a language.
 These rules are useful for verifying certain important properties for a programming language, such as correctness or security.
