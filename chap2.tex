@@ -7,8 +7,9 @@ Lua is a small extension language~\cite{PIL} with many similarities to JavaScrip
 Every program can be thought as a block. A block is a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
 
 %FIXME: Add in an example expression that would be a valid program in JS but not in Lua.
+%FIXED: I don't think there is a need. Really...
 Next, we will discuss two important elements in Lua separately, which are expressions and statements.
-Expressions and statements are separated and partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of a statement and cannot stand alone in a program. However, note that function declaration and function application are considered both statements and expressions.
+Expressions and statements are separated and partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of a statement and cannot stand alone in a program. However, note that function application is considered both statements and expressions.
 
 Figure~\ref{fig:LuaExp} shows the complete list of Lua expressions
 and Figure~\ref{fig:LuaStat} shows the available statements for Lua.
@@ -34,6 +35,9 @@ Note that direct table selects are syntactic sugar for computed table selects.
 }.
 Lua supports the usual mathematical binary and unary operators.
 Finally, Lua includes blocks in function definitions, which are sequences of statements.
+%--------------------------------MODEFIED-----------------------------------
+However, we will give the specific difinition of blocks in Figure \ref{fig:LuaStat}, since they look more related to statements.
+%----------------------------------------------------------------------------
 
 % Commands for formatting figure
 \newcommand{\mydefhead}[2]{\multicolumn{2}{l}{{#1}}&\mbox{\emph{#2}}\\}
@@ -83,6 +87,7 @@ Finally, Lua includes blocks in function definitions, which are sequences of sta
   unop ::= & - ~|~ {\tt not} ~|~ *  & \mbox{\emph{Unary operators}} \\
   \\
   %FIXME: Blocks need to be defined
+  %FIXED: See above
   \mydefhead{block \qquad\qquad\qquad\qquad}{Blocks}
 \end{array}
 \]
@@ -102,7 +107,12 @@ Assignment statements are used to assign a value to a specific variable in the g
 Assignment statements in Lua work a little differently than in other languages.
 First of all, it is not possible to chain assignments, so that {\tt x = y = 3} is a syntax error.
 %FIXME: Show an example of assigning multiple values to multiple variables.  In JS, I believe this is known as "destructuring assignment".  Is the same term used in Lua?
-However, Lua allows users to assign multiple values to multiple variables with only one statement by using expression lists on both side of `='. This is very convenient and interesting, but it is not indispensable. Therefore we remove multiple expressions and find a way to desugar them in Chapter~\ref{chp:luaTranslation}.
+%-------------------------------------------MODEFIED-------------------------------------------
+However, Lua allows users to assign multiple values to multiple variables with only one statement by using expression lists on both side of `='. 
+This looks like what we called ``Destructuring Assignment'' in JavaScript \cite{DA}. 
+Section \ref{sec:desugarVarUpdate} rises an example showing this. It is very convenient and interesting. 
+However, it is not that indispensable. Therefore we remove multiple expressions and find a way to desugar them in Chapter~\ref{chp:luaTranslation}.
+%-----------------------------------------------------------------------------------------------
 
 In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages.
 In Lua, users have 3 different ways to implement and control a loop which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Since loops and conditional statement are both straightforward, we will not discuss them further.
@@ -174,23 +184,22 @@ Metatables are one of the more unusual features in Lua. The functions in metatab
 There are only a few default functions in the metatable. They include hooks for behavior controlling, and for binary operations. In addition, these metamethods can be redefined by the programmer. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
 
 Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua.
-% FIXED: Add section reference
 In Section~\ref{sec:FWLuaMetatables} we decide to build a default metatable to simplify our implementation. Meanwhile, more rules about metatable can be found in the ref \cite{LRM}.
 
 \section{Tables}\label{sec: LuaTable}
-% FIXED: Add figure ref
 From Figure~\ref{fig:LuaExp}, we can see that there is an expression for table constructors, which create a new table as a value. Basically, there are many ways of telling the program how to deal with a table and also to specify the values in it. However, the purpose of the different syntax would all be the same: to assign a value to a key in the specific table.
 
 Therefore, the basic syntax of tables is simple in Lua. Users can just assign a new empty table to a variable, assign a value to a variable in this table, or update some values in it, just like:
-\begin{flushleft}
-\tt tbl = \{\} \\
-\tt tbl[1] = 2 \\
-\end{flushleft}
+
+\begin{verbatim}
+tbl = {}
+tbl[1] = 2 
+\end{verbatim}
 Also, you can create a table by using a set of expressions like:
-\begin{flushleft}
-\tt table = \{ x = 1; y = 2, z = 3 \} \\
-\end{flushleft}
-% FIXED: Add section reference
+\begin{verbatim}
+table = { x = 1; y = 2, z = 3 } 
+\end{verbatim}
+
 And this statement can be translated into a set of expressions; we will talk about this more in the Section~\ref{sec:TranslateTabls}.
 
 Tables in Lua are the primary data structure. Almost every type of data structure can be represented with tables in Lua in an efficient way, such as arrays, records or sets. One interesting thing is that arrays and lists are usually used as the basic data structure in other languages. We can easily implement these structures using Lua tables. However, we don't take this as necessary since tables are much more powerful than them.
@@ -198,12 +207,14 @@ Tables in Lua are the primary data structure. Almost every type of data structur
 In this section, we illustrate several examples showing how to implement other data structure with tables and metatables. These examples will also make both tables and metatables easier to be comprehend.
 
 The first instance we want to show is about arrays. We know that an array is made up of a set of values and keys, where keys are index numbers. Therefore, giving an array using a table is not an issue, as we show in the following code:
-\begin{flushleft}
-\tt array = \{\} \\
-\tt ~~for i=1, 100 do\\
-\tt ~~~~ array[i] = 0\\
-\tt ~~end\\
-\end{flushleft}
+
+\begin{verbatim}
+array = {}
+  for i=1, 100 do
+  array[i] = 0
+end
+\end{verbatim}
+
 In this program, the array would return the value of {\tt Nil} instead of {\tt 0} if the index number is out of the range (1 to 100).
 
 Objects are very important data structures in object-oriented programming languages. Lua does not provide objects by default, but it is easy to build them in Lua using a combination of tables and metatables.
@@ -214,15 +225,17 @@ However, objects also have some unique qualities that make them different from t
 To properly implement these features, we rely on metatables to change the behavior of tables to act like objects.
 
 We create a table with the table constructor in the following code:
-\begin{flushleft}
-\tt parent = \{firstName = "Max", lastName = "Lin"\} \\
-\tt child = \{firstName = "Mary"\} \\
-\end{flushleft}
-% FIXED: Find a reference for prototypes
+
+\begin{verbatim}
+parent = {firstName = "Max", lastName = "Lin"} 
+child = {firstName = "Mary"} 
+\end{verbatim}
+
 And we now have two tables. These tables are similar to objects because they share a similar structure. Now, we use metatables to model inheritance using a prototype-based approach~\cite{PIJS}. As we know, the child object inherits all the data from its parent. So when we index a key we will get back the value from the parent when this key is not available in the child. Here is the code:
-\begin{flushleft}
-\tt setmetatable(child,\{\_\_index = parent\}) \\
-\tt print(child.lastName)\\
-\end{flushleft}
+
+\begin{verbatim}
+setmetatable(child,{__index = parent}) 
+print(child.lastName)
+\end{verbatim}
 
 In the code, the method {\tt setmetatble(t, mt)} sets the table {\tt mt} to {\tt t} as its metatable. In the table {\tt mt}, the method {\tt \_\_index} tells the child table to index the specific table when the key is missing. Hence, we now deliver basic inheritance for our objects. In this program, the result would be the value {\tt Lin} since the key {\tt lastName} is available in the parent object.
