@@ -188,10 +188,11 @@ with dynamic scoping, the compiler goes throughout the whole scope link, and thu
 The above example is testing Lua's scoping mechanism.
 Once the function {\tt foo()} is invoked in function {\tt bar()}, Lua finds the value of variable {\tt x} from the stack of function {\tt foo()}, and then find its outer scope.
 It means the scope in Lua is static and immutable. That is the reason why we also call this ``static scope''.
+In contrast, if Lua used dynamic scoping, the above example would print 100.
 
 %------MODEIFIED-------
 \subsection{Closures}
-Closures in a programming language enable function to access variables in their outer scope. Closures is as important as scoping. It is commonly discussed together with scoping.
+Closures in a programming language enable functions to access variables in their outer scope. Closures is as important as scoping. It is commonly discussed together with scoping.
 
 For a concrete understanding of closures, consider the following example:
 %------MODEIFIED-------
@@ -210,12 +211,14 @@ print(bar()) --return 2
 print((foo())()) --return 1
 \end{verbatim}
 
-This shows the closures in Lua.
-In the example, once the variable {\tt bar} is declared, a stack stored scoping information about it is created.
-This stack is only about {\tt bar}, even if it is highly related to function {\tt foo}.
+This shows closures in Lua.
+In the example, once the variable {\tt bar} is declared, a stack storing scoping information is created.
+%This stack is only about {\tt bar}, even if it is highly related to function {\tt foo}.
+%FIXME: Revise this next sentence on bar and foo -- the key point is that foo() returns a closure.
 In the condition, calling {\tt bar} and {\tt foo()} seems the same. However, they will point to two independent stack in inner environment, just as the above instance shows.
 
-In the case of lexical scoping and closures, we build our syntax of FWLua very static. In the syntax of setting variables, there is a need of very exact directions of where should FWLua set values. This is a very interesting and important character in FWLua. We will mainly discuss the syntax in Section ~\ref{sec: FWLUAsemantic}, and then introduce about how we transfer Lua into FWLua in the chapter ~\ref{chp:luaTranslation}.
+%In the case of lexical scoping and closures, we build our syntax of FWLua very static.
+For setting variables, we need very exact directions of where FWLua should set values. This is a very interesting and important character in FWLua. We will discuss this issue more in Section~\ref{sec: FWLUAsemantic}, and then introduce our translation from Lua to FWLua in Chapter~\ref{chp:luaTranslation}.
 
 \subsection{Recursion}\label{sec:recursions}
 
@@ -245,10 +248,10 @@ The restriction of allowing a function in FWLua to only take one argument comes 
 
 %FIXED: Still need to discuss this section
 %---------MODIEFIED-----------
-There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda cauculus. It is because lambda cauculus is so powerful that enables us to remove many features, which can be represented using lamda cauculus, from the full version of Lua. We will further show the detail in the section \ref{sec:TraFunc}.
+There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda calculus. It is because lambda calculus is so powerful that enables us to remove many features, which can be represented using lambda calculus, from the full version of Lua. We will further show the detail in the section \ref{sec:TraFunc}.
 
 In the very basic lambda calculus, the symbol `$\lambda$' means a function, the letter appears after `$\lambda$' means the argument this function takes.
-Actually, these two letters form the basic called function.
+%Actually, these two letters form the basic called function.
 Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the perimeter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
 %---------MODIEFIED-----------
 
@@ -257,7 +260,8 @@ Besides, lambda calculus uses another expression as the body of function to form
 \end{verbatim}
 can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
 
-Therefore, it obviously proves the reason why we let only one argument in the function. However, functions with multiple arguments in Lua would be inevitable. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
+%Therefore, it obviously proves the reason why we let
+Although we only allow one argument in a function, functions with multiple arguments in Lua are common. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
 
 \newcommand{\abFunction}[2]{{\tt function} ~{#1}~{\tt return}~{#2}~{\tt end}}
 \newcommand{\semanticFullRaw}[4]{{#1},{#2} \Downarrow {#3},{#4}}
