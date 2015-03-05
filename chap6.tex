@@ -1,21 +1,24 @@
 \chapter{Implementation: Interpreter in Haskell}
 Our implementation is an interpreter written in Haskell, which is a popular functional  programming language. 
 
-Haskell provides static type system, a fast runtime speed, since it treats computations as a set of expressions of mathematical functions,  and this will possibly avoid mutable variables. 
+Haskell provides a static type system, a fast runtime speed, since it treats computations as a set of expressions of mathematical functions,  and this will possibly avoid mutable variables. 
 %FIXED: Haskell does provide a fast runtime, and it does treat computations as mathematical functions, but I'm not convinced of the connection.  Do you have any references making this claim?
 
-Haskell also has simple memory allocation due to the research\cite{PIH}. As the trade off, there is no absolute meaning of ``global mutable variables'' such like global store of symbol table stack, and this would obviously differ in building interpreter between object-oriented language and functional language. Actually, this disadvantage would bring many troubles during the construction of the interpreter. We will talk about what those troubles are in the following sections.
+Haskell also has simple memory allocation due to the research~\cite{PIH}.
+%FIXME: Not sure what you are trying to say here -- let's discuss.
+As the trade off, Haskell does not allow mutable variables, and this would obviously differ in building interpreter between object-oriented language and functional language.
+%Actually, this disadvantage would bring many troubles during the construction of the interpreter. We will talk about what those troubles are in the following sections.
 
 %FIXME: You've already discussed desugaring in the last chapter, so you can shorten this discussion and simply discuss how you have implemented desugaring.
 %FIXED: Let me delete it first since I dont plan to build a desugarer yet.
 %What is more, although the interpreter is based on the syntax and semantics of FWLua, we want it to interpret the code of the full version of Lua. Due to this, there would be a need of desugaring phase inside the interpreter. In the interpreter, we make this phase as a single, tiny tier in the interpreter, and create it as a single {\tt .hs} file in the program to keep the whole interpreter loosely coupled.
 
 %FIXED: Not sure what you mean by "paradigm" here
-In this chapter, we discuss the structure of our interpreter, and introduce how each element works in the structure.
+In this chapter, we discuss the structure of our interpreter, and introduce how each component works in the structure.
 
 \section{Structure}
 %FIXME: Pick either "loosely coupled" or "loosely-coupled" and replace all other occurrences.
-According to the reference\cite{WCAI}, we want our interpreter to be loosely-coupled\cite{looseC}. This term means that the program can be treated as several components. In addition, each component in the program is totally independent, with little or no shared information or definitions with other parts.
+According to the reference~\cite{WCAI}, we want our interpreter to be loosely-coupled~\cite{looseC}. This term means that the program can be treated as several components. In addition, each component in the program is totally independent, with little or no shared information or definitions with other parts.
 %FIXME: Not following this sentence, especially what you mean by "adoptive"
 This term was introduced in case of keeping program adaptive, especially in designing compiler of interpreter. In other words, a loosely-coupled interpreter can handle different kinds programming language by only changing specific key components in it.
 
@@ -28,9 +31,8 @@ Secondly, the file {\tt Executor.hs} is the backend of the interpreter and is us
 There is also an intermediate tier that we call the ``Symbol Table''. This tier stores any information we need in the interpreter such as variable types, reserved words, type definitions and so on. While either the parser or the executer is running, they will visit the symbol table and get information they need to run. 
 
 %FIXED: Still not sure what you mean by "paragigm"
-Above all, the structure of our FWLua interpreter is shown in the figure \ref {fig:structure}. We also introduce the detail in the following sections. 
+Above all, the structure of our FWLua interpreter is shown in the Figure~\ref {fig:structure}. We also introduce the detail in the following sections. 
 
-%FIXME: Looks reasonable, but next meeting let's discuss your figure here.
 \begin{figure}
 \centering
 \caption{Structure of the interpreter}

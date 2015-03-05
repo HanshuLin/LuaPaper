@@ -11,7 +11,7 @@ We have introduced the full syntax and semantics of FWLua in Chapter~\ref{chp:Co
 However, our purpose is to let FWLua capture the essence of Lua with only these core features.
 In this chapter, we discuss how FWLua works like Lua by showing how syntactic desugaring can be used to convert between FWLua and Lua. Since there are many additional features in Lua, we first discuss how to desugar in Lua to let the code fit FWLua. Secondly we give some translation rules from Lua to FWLua.
 
-There are several important parts we focus on in desugaring Lua. First of all, getting variables is taken into consideration. Secondly, Lua allows many different ways of representing variable updates and declarations in different conditions and scopes. We also consider functions because there are some different qualities for functions in the full Lua language. Tables, in addition, need to be discussed since they are the primary data structure with metamethods and metatables in both Lua and FWLua. Finally, we discuss how we may desugar control statements. 
+There are several important parts we focus on in desugaring Lua. First of all, getting variables is taken into consideration. Secondly, Lua allows many different ways of representing variable updates and declarations in different conditions and scopes. We also consider functions because there are some different qualities for functions in the full Lua language. Tables, in addition, need to be discussed since they are the primary data structure with metamethods and metatables. Finally, we discuss how we may desugar control statements. 
 
 We will discuss those parts in detail, along with examples, in the following sections.
 
@@ -131,7 +131,8 @@ rawset(rawset(rawset(_ENV, "table", {}) , "x", 1), "y", 2)
 However, metatables and metamethods have to be considered. In Section~\ref{sec: LuaTable}, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Therefore, we reserve a table with the name of {\tt \_metatable} to represent metatables in Lua. There are also two functions, {\tt setmetatable(t, mt)} and {\tt getmetatable(t)}, highly related to table constructor. We can desugar them by using {\tt rawset}, {\tt rawget}, and {\tt \_metatable} in FWLua.
 
 %FIXME: Interesting point, but we need to think on the wording.  Let's discuss.
-Figure ~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, what a rawset expression in FWLua returns is an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
+%FIXME: Is this really true?  I thought that you could chain rawsets?
+Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, what a rawset expression in FWLua returns is an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
 
 \begin{figure}
 \caption{Desugaring Lua Table}\label{fig:desLuaTable}
@@ -146,13 +147,13 @@ Figure ~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table c
 \end{figure}
 
 \section{Functions and control structures}\label{sec:TraFunc}
-Before desugaring functions in Lua, we first introduce those differences between functions in Lua and in FWLua. Since functions in FWLua are similar to lambda calculus, there is an obvious difference, which is that each function in FWLua always take exactly one argument as its perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, there is a very simple function of Lua in the following:
+Before desugaring functions in Lua, we first introduce those differences between functions in Lua and in FWLua. Since functions in FWLua are similar to lambda calculus, there is an obvious difference, which is that each function in FWLua always take exactly one argument as its perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, consider a simple Lua function:
 
 \begin{verbatim}
 function (x,y) return e end
 \end{verbatim}
 
-and now it can be represented in FWLua by:
+An equivalent function can be written in a style closer to FWLua as follows:
 
 \begin{verbatim}
 function (x) return 
@@ -164,7 +165,7 @@ end
 
 %FIXME: Note that applying these functions is slightly different, so show that as well.
 
-Return statements in Lua's function are optional, which means a function might not return values like expressions. However, return statements are required in every function in FWLua.
+Return statements in Lua functions are optional, which means a function might not return a value. However, return statements are required in every function in FWLua.
 Furthermore, a function in Lua might have its own scope and supports local variables. 
 
 Since we don't provide local variables to functions in FWLua, we now treat the local scope as a special table.
@@ -173,11 +174,12 @@ we translate every function in Lua to a table with fields for basic information 
 
 Lambda function applications can be used to represent a sequence of  statements. We therefore translate sequences of statements into functions in FWLua. Lambda functions can also be used to represent control structures and boolean values, which we discuss in the next section.
 
-Figure~\ref{fig:desLuaFunc} gives the rules for translating functions. Same as above, the results of the translations are all in FWLua syntax, or in other constructs that we define.
+Figure~\ref{fig:desLuaFunc} gives the rules for translating functions. As above, the results of the translations are all in FWLua syntax, or in other constructs that we define.
 
 \subsection{Control structures}
 Control structures can be defined in terms of a set of lambda functions. 
-We can treat the constant {\tt true} as a function taking 2 parameters\footnote{
+Following the standard pattern used in the lambda calculus,
+we can treat the constant {\tt true} as a function taking 2 parameters\footnote{
   More strictly speaking, {\tt true} is a function that takes one parameter
   and returns another function that takes one parameter and returns
   the argument passed to the outer function.
@@ -207,7 +209,7 @@ x = 0;
 while x ~= 10 do x = x+1; end
 \end{verbatim}
 
-The above code is a loop statement. It asks program to increment 1 to variable {\tt x} each time, once it does not equal to 10. We can see that, a recursive computation and a conditional statement are in the loop: program have to depend whether {\tt x} is equal to 10, and then recursively execute this computation. Therefore, they can be be represent as the following:
+The above code is a loop statement. It increments the variable {\tt x} by one each time, until it equals 10. We can see that, a recursive computation and a conditional statement are in the loop: the program tests whether {\tt x} is equal to 10, and then recursively executes this computation. Therefore, they can be be represent as the following:
 
 \begin{verbatim}
 function while()
