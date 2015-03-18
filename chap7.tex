@@ -2,11 +2,4 @@
 All in all, this paper shows the syntax and semantics of the full version of Lua due to our analysis, and thus a simpler version of Lua that we call Featherweight Lua. FWLua removes a lot of elements and only retains the key components from Lua. We have focused on the exotic and important features, which are metatables and metamethods. During the research, we found that those factors are very powerful for Lua since they can change the behavior of the programming language. They can even model many different kinds of data structures combining the primary data structure in Lua --- tables.
 
 In addition, we also give an approach to desugar Lua into FWLua. Due to this, users can gain a clearer understanding of the full version of Lua through this core language. We also give an interpreter implemented in Haskell as the implementation. 
-This implementation proves to be very useful during our studying about the relationship between Lua and FWLua. With this implementation,
-%FIXED: Need to revise this last sentence
-we are able to test and verify our translations and semantics.
-
-%FIXED: This paragraph is a little vague -- we may need to revise or drop it.
-%FIXED: Actually I want to have a next meeting to discuss about what the future will be.
-%Future work includes some further works about completing FWLua due to Lua.
-%Since FWLua is just a core set of the full version of Lua, there are still factors in Lua that can be treated as core factors due to different directions of research. For example, Lua has planty reserved functions that can control its basic behavior, and it even has a special data type, which is called I/O file according to the reference \cite{PIL}.
+This implementation proves to be very useful during our studying about the relationship between Lua and FWLua. With this implementation, we are able to test and verify our translations and semantics.

@@ -1,8 +1,6 @@
 \chapter{Operational semantics for Featherweight Lua} \label{chp: syntax and semantic}
 %---------------------------------MODIFIED by HANSHU---------------------------------
 The operational semantics of Featherweight Lua are deliberately minimal. No hooks or control structures are included in the semantics. Feartherweight Lua has two unique characteristics:
-%FIXED: What do you mean by "exact direction"?  Let's discuss.
-%FIXED: Tables are an important part of the semantics.  Mention those as well.
 users have to exactly set or get a variable in FWLua without any ambiguous direction, and functions in FWLua are lambda functions.
 However, tables in FWLua are the primary data structure, just the same as Lua.
 
@@ -68,7 +66,6 @@ In the basic evaluation rules, we can see FWLua takes current expressions and st
 
 {\bf FW-NEW}: This rule allocates a new memory location in the store for a new, empty table {\tt \{\}}. This table is added to the store (register to table), with the key of the new address.  The new address is the resulting value.
 
-%FIXED: The discussion of this rule needs revision -- let's discuss
 {\bf FW-RAWGET}: In the evaluation rule of {\tt rawget()},
 This semantic shows an important charactor of FWLua: no ambiguous direction. In this evaluation rule, FWLua takes 2 arguaments, which are table and key, for getting a variable in the right place. The first expression in this rule presents a direction, and because there are not any reserved words in FWLua, users need to give an exact direction to FWLua to let it know where it should go.
 

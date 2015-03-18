@@ -213,11 +213,9 @@ print((foo())()) --return 1
 
 This shows closures in Lua.
 In the example, once the variable {\tt bar} is declared, a stack storing scoping information is created.
-%This stack is only about {\tt bar}, even if it is highly related to function {\tt foo}.
 %FIXME: Revise this next sentence on bar and foo -- the key point is that foo() returns a closure.
-In the condition, calling {\tt bar} and {\tt foo()} seems the same. However, they will point to two independent stack in inner environment, just as the above instance shows.
+In the condition, calling {\tt bar} and {\tt foo()} seems the same. However, they will point to two independent stack in inner environment, just as the above instance shows. In other words, the function {\tt foo()} returns a closure.
 
-%In the case of lexical scoping and closures, we build our syntax of FWLua very static.
 For setting variables, we need very exact directions of where FWLua should set values. This is a very interesting and important character in FWLua. We will discuss this issue more in Section~\ref{sec: FWLUAsemantic}, and then introduce our translation from Lua to FWLua in Chapter~\ref{chp:luaTranslation}.
 
 \subsection{Recursion}\label{sec:recursions}
@@ -260,7 +258,6 @@ Besides, lambda calculus uses another expression as the body of function to form
 \end{verbatim}
 can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
 
-%Therefore, it obviously proves the reason why we let
 Although we only allow one argument in a function, functions with multiple arguments in Lua are common. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
 
 \newcommand{\abFunction}[2]{{\tt function} ~{#1}~{\tt return}~{#2}~{\tt end}}
@@ -287,7 +284,6 @@ Lua allows users to set any table as a metatable of other tables. Or, there is a
 \subsection{What's in metatables}
 Metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence they are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. One of the purposes of metamethods is to let developers change the behavior of the programming language to a certain degree.
 
-%FIXED: Do you have a citation for the 4 different kinds of metamethods?
 Furthermore, there are 4 different kinds of metamethods in Lua based on the reference \cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.
 
 Figure \ref{fig:metatables} introduces the metamethods that play key roles in FWLua and then gives the type of each metamethod.

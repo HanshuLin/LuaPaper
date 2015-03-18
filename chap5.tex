@@ -82,7 +82,7 @@ rawset(rawget(a, "_local"), "x", 12) --desugared in FWLua
      }
 \desugar{e_1.e_2}{e_1[e_2]}
 \desugar{e.x}{e[``x"]}
-\desugar{x}{a.x} %FIXME: Need to discuss this case -- not sure what 'a' is
+\desugar{x}{a.x}
 \end{array}\]
 
 {\bf Variable Declaration \& Update:}\[

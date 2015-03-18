@@ -10,31 +10,55 @@ function foo()
        x = x + 1;
        return x; 
     end;
-end
+end;
 bar = foo();
 bar();
 \end{verbatim}
 
+\newpage
 \section{Code in FWLua}
 
-%FIXME: This code is not readable in your PDF.  Reformat it to fit on the page.
 \begin{verbatim}
-rawset(_ENV, "foo", rawset(rawset(rawset(rawset({}, "_outer", _ENV), "_local", {}), "_arg", {}), "_call",
-  function() return
-    (function () return
-       rawset(rawset(rawset(rawset({}, "_outer", _ENV), "_local", {}), "_arg", {}), "_call",
-           function () return
-             (function () return
-                rawget(rawget(rawget(_ENV, "foo"), "_local"), "x")
-             end)(
-                rawset(rawget(rawget(_ENV, "foo"), "_local"), "x",   rawget(rawget(rawget(_ENV, "foo"), "_local"), "x") + 1 ))
-           end)
-     end)(
-       rawset(rawget(_#TABLE01, "_local"), "x", 0)
-     )
-end)
-);
+(function () return 
 
-rawset(_ENV, "bar", (rawget(rawget(_ENV, "foo"), "_call"))());
-(rawget(rawget(_ENV,  "bar",),  "_call"))()
+  (rawget(rawget(_ENV, "bar"), "_call"))()    --bar()
+  
+end)(
+  
+  (function () return
+  
+    rawset(_ENV, "bar", (rawget(rawget(_ENV, "foo"), "_call"))())   
+    --bar = foo()
+    
+    end)(
+   
+      rawset(_ENV, "foo", rawset({}, "_call",
+        function (_arg) return
+          (function (_outer) return
+            (function (_local) return
+                (function () return             
+                  rawset(rawset({}, "_arg", {}), "_call",
+                    function (_arg) return
+                       function (_outer) return
+                        (function (_local) return
+                          (function () return
+                            rawget(_outer, "x")
+                          end)(
+                            rawset(_outer, "x", rawget(_outer, "x") + 1)
+                          )  
+                        end)({})
+                      end)(_local)
+                    end                  
+                  end)(              
+                    rawset(_local, "x", 10)                
+                  )
+            end)({})
+          end)(_ENV)
+        end)
+      )
+   )
+)
+
+
+
 \end{verbatim}
