@@ -1,4 +1,7 @@
 \newcommand{\desugar}[2]{{#1} & \xlongequal[]{def} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
+
+\newcommand{\definefunc}[2]{{#1} & \xlongequal[]{} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
+
 \newcommand{\desugarline}[1]{ & & {\begin{array}{@{}l@{}} #1 \end{array}}\\}
 
 \newcommand{\translate}[2]{\llbracket {#1} \rrbracket & \xlongequal[]{} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
@@ -72,35 +75,17 @@ rawset(rawget(a, "_local"), "x", 12) --desugared in FWLua
 \caption{Desugaring Lua Variables}\label{fig:desLuaVar}
 {\bf Variable Select:}\[
 \begin{array}{rclcl}
-\desugar{e_1[e_2]}{{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\}
-\desugarline{ 
-     \quad{\tt rawget}(e_1, e_2) ~\\
-     {\tt else}\\
-     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index};\\
-     \quad f(e_1,e_2)\\ 
-     {\tt end}
-     }
+
 \desugar{e_1.e_2}{e_1[e_2]}
 \desugar{e.x}{e[``x"]}
-\desugar{x}{a.x}
+
 \end{array}\]
 
 {\bf Variable Declaration \& Update:}\[
 \begin{array}{rclcl}
-\desugar{e_1[e_2]=e_3}{
-    {\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
-}
-\desugarline{  
-     \quad{\tt rawset}(e_1, e_2,e_3) ~\\
-     {\tt else}\\
-     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex};\\
-     \quad f(e_1,e_2,e_3)\\ 
-     {\tt end}\\
-}
+
 \desugar{e_1.x=e_2}{e_1[``x"] = e_2}
 \desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}} %FIXME: Need to discuss
-\desugar{{\tt local}~x=e~(in~a)}{a.\_local.x = e;} %FIXME: Need to discuss
-
 \end{array}\]
 \end{figure}
 
@@ -131,18 +116,36 @@ rawset(rawset(rawset(_ENV, "table", {}) , "x", 1), "y", 2)
 However, metatables and metamethods have to be considered. In Section~\ref{sec: LuaTable}, we have discussed that tables can be used as different data structures by changing metatables or defining some functions. Therefore, we reserve a table with the name of {\tt \_metatable} to represent metatables in Lua. There are also two functions, {\tt setmetatable(t, mt)} and {\tt getmetatable(t)}, highly related to table constructor. We can desugar them by using {\tt rawset}, {\tt rawget}, and {\tt \_metatable} in FWLua.
 
 %FIXME: Interesting point, but we need to think on the wording.  Let's discuss.
+%---------------MODIFIED----------------------------------
 %FIXME: Is this really true?  I thought that you could chain rawsets?
-Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, what a rawset expression in FWLua returns is an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
+Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, rawset expressions in both Lua and FWLua return an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
 
 \begin{figure}
 \caption{Desugaring Lua Table}\label{fig:desLuaTable}
 {\bf Table:}\[
 \begin{array}{rclcl}
-\desugar{t = \{\}}{{\tt rawset}(a,``t", \{\})}
 \desugar{t = \{\overline{e_i = v_j}\}}{{\tt rawset}(...{\tt rawset}({\tt rawset}(a,``t", \{\}), e_1, v_1)...)}
 \desugar{{\tt setmetatable}(t, mt)}{{\tt rawset}(a,``\_metatable", mt)}
 \desugar{{\tt getmetatable}(t)}{{\tt rawget}(a,``\_metatable")}
 \desugar{t_1~{\it op}~t_2}{(({\tt rawget}({\tt rawget}(a,``\_metatable"),~{\it op}))(t_1))(t_2)}
+\desugar{e_1[e_2]}{{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\}
+\desugarline{ 
+     \quad{\tt rawget}(e_1, e_2) ~\\
+     {\tt else}\\
+     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index};\\
+     \quad f(e_1,e_2)\\ 
+     {\tt end}
+     }
+\desugar{e_1[e_2]=e_3}{
+    {\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
+}
+\desugarline{  
+     \quad{\tt rawset}(e_1, e_2,e_3) ~\\
+     {\tt else}\\
+     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex};\\
+     \quad f(e_1,e_2,e_3)\\ 
+     {\tt end}\\
+}
 \end{array}\]
 \end{figure}
 
@@ -228,12 +231,22 @@ Hence all different kind of loop statements can be desugared using conditional s
 \caption{Desugaring Lua Functions}\label{fig:desLuaFunc}
 {\bf Function:}\[
 \begin{array}{rclcl}
-\desugar{e_1{\tt ;}~e_2}{(\aFunction{a}{e_2})(e_1)}
-\desugar{{\tt function}~f(x,y)~e~{\tt end}}{f = \{ {\tt ``\_local"} = \{\}, {\tt ``\_outer"} = a,}
-\desugarline{{\tt ``\_arg"} = \{x, y\}, {\tt ``\_call"} = \aFunction{x}{\aFunction{y}{e}}\}}
-%FIXME: Not following what ... stands for here.
-\desugar{f(\overline{e_i})}{(...(f.\_call)(f.\_arg = e_1)...)(f.\_arg = e_i)}
+\desugar{e_1{\tt ;}~e_2}{(\aFunction{d}{e_2})(e_1)}
+\desugar{{\tt function}~f(\overline{x_i})~e~{\tt end} ~({\tt in~a})}{f = \{ {\tt ``\_arg"} = \{\}, {\tt ``\_call"} = \lambda\_arg.}
+\desugarline{
+  \quad(\lambda\_outer.\\
+  \quad\quad(\lambda\_local.e)(\{{\tt ``\_outer"} = \_outer, {\tt ``\_arg" }= \_arg\})\\
+  \quad)(a)
+\}
+}
+\desugar{f(\overline{v_i})}{(f.\_call)(\{\overline{x_i = v_i}\})}
+\\
+\desugar{{\tt local}~x=e}{{\tt rawset}(\_local, ``x", e)}
+\desugar{x}{{\tt getValue}(\_local, x)}
+\desugar{x=e}{{\tt setValue}(x, e, \_local)}
+
 \end{array}\]
+
 
 {\bf Control Structure:}\[
 \begin{array}{rclcl}
@@ -248,14 +261,12 @@ Hence all different kind of loop statements can be desugared using conditional s
 \desugar{{\tt while}~e_1~{\tt do}~e_2~{\tt end}}{
     {\tt function}~f()
 }
-%FIXED: I think e2;f should be e2;f().  Do you agree?
 \desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f()~{\tt else}~{\tt return}~{\tt nil}~{\tt end}\\
 {\tt end};f()
 }
 \desugar{{\tt repeat}~e_1~{\tt until}~e_2}{
    {\tt while}~{\tt not}~e_2~{\tt do}~e_1~{\tt end}\\
 }
-%FIXME: I have some questions on the for loop -- let's discuss
 \desugar{{\tt for}~x=e_1~{\tt ,}~e_2~{\tt ,}~e_3~{\tt do}~e_4~{\tt end}}{
     {\tt function}~f()
 }
@@ -263,6 +274,49 @@ Hence all different kind of loop statements can be desugared using conditional s
     \quad {\tt local}~x = e_1;\\
     \quad {\tt while}~x<= e_2~{\tt do}~x = x + e_3;~e_4~{\tt end}\\
     {\tt end};f()\\
+}
+\end{array}\]
+\end{figure}
+
+
+\begin{figure}
+\caption{Reserved Functions in Translation rules}\label{fig:desLuaResvFunc}
+{\bf Reserved Functions:}\[
+\begin{array}{rclcl}
+\definefunc{{\tt getValue}}{\lambda\_local. \lambda\_var.}
+\desugarline{  
+     \quad(\lambda\_outer. \lambda\_arg.\\
+     \quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
+     \quad\quad\quad {\tt rawget}(\_local, \_var) ~\\
+     \quad\quad{\tt else}~\\
+     \quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
+     \quad\quad\quad\quad {\tt rawget}(\_arg, \_var)  ~\\
+     \quad\quad\quad{\tt else}~\\
+     \quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
+     \quad\quad\quad\quad\quad{\tt nil}\\
+     \quad\quad\quad\quad{\tt else}\\
+     \quad\quad\quad\quad\quad{\tt getValue}(\_outer, \_var)  ~\\
+     \quad\quad\quad\quad {\tt end}\\
+     \quad\quad\quad {\tt end}\\
+     \quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
+}
+\\
+\definefunc{{\tt setValue}}{\lambda\_local. \lambda\_var.\lambda\_value}
+\desugarline{  
+     \quad(\lambda\_outer. \lambda\_arg.\\
+     \quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
+     \quad\quad\quad {\tt rawset}(\_local, \_var, \_value) ~\\
+     \quad\quad{\tt else}~\\
+     \quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
+     \quad\quad\quad\quad {\tt rawset}(\_arg, \_var, \_value) ~\\
+     \quad\quad\quad{\tt else}~\\
+     \quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
+     \quad\quad\quad\quad\quad{\tt nil}\\
+     \quad\quad\quad\quad{\tt else}\\
+     \quad\quad\quad\quad\quad{\tt setValue}(\_outer, \_var, \_value)  ~\\
+     \quad\quad\quad\quad {\tt end}\\
+     \quad\quad\quad {\tt end}\\
+     \quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
 }
 \end{array}\]
 \end{figure}
