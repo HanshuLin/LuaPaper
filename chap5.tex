@@ -128,23 +128,35 @@ Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table co
 \desugar{{\tt setmetatable}(t, mt)}{{\tt rawset}(a,``\_metatable", mt)}
 \desugar{{\tt getmetatable}(t)}{{\tt rawget}(a,``\_metatable")}
 \desugar{t_1~{\it op}~t_2}{(({\tt rawget}({\tt rawget}(a,``\_metatable"),~{\it op}))(t_1))(t_2)}
-\desugar{e_1[e_2]}{{\tt if}~ e_1[e_2] ~\sim= {\tt nil} ~ {\tt then}\\}
+\desugar{e_1[e_2]}{\lambda e_1.\lambda e_2.}
 \desugarline{ 
-     \quad{\tt rawget}(e_1, e_2) ~\\
-     {\tt else}\\
-     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}index};\\
-     \quad f(e_1,e_2)\\ 
-     {\tt end}
+     \quad{\tt if}~ {\tt rawget}(e_1, e_2) ~\sim= {\tt nil} ~ {\tt then}\\
+     \quad\quad{\tt rawget}(e_1, e_2) ~\\
+     \quad{\tt else}\\
+     \quad\quad{\tt local}~f = \\
+     \quad\quad\quad {\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}index});\\
+     \quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\
+     \quad\quad\quad {\tt nil} \\
+     \quad\quad{\tt else}\\
+     \quad\quad\quad f(e_1,e_2)\\ 
+     \quad\quad{\tt end}\\
+     \quad{\tt end}\\
      }
 \desugar{e_1[e_2]=e_3}{
-    {\tt if}~ e_1[e_2] ~== {\tt nil} ~ {\tt then}\\
+    \lambda e_1.\lambda e_2.\lambda e_3.
 }
 \desugarline{  
-     \quad{\tt rawset}(e_1, e_2,e_3) ~\\
-     {\tt else}\\
-     \quad{\tt local}~f = {\tt getmetatable}(e_1).{\tt{\_}{\_}newindex};\\
-     \quad f(e_1,e_2,e_3)\\ 
-     {\tt end}\\
+     \quad{\tt if}~  {\tt rawget}(e_1, e_2) ~== {\tt nil} ~ {\tt then}\\
+     \quad\quad{\tt rawset}(e_1, e_2,e_3) ~\\
+     \quad{\tt else}\\
+     \quad\quad{\tt local}~f = \\
+     \quad\quad\quad{\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}newindex});\\
+     \quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\\\
+     \quad\quad\quad {\tt nil} \\
+     \quad\quad{\tt else}\\
+     \quad\quad\quad f(e_1,e_2,e_3)\\ 
+     \quad\quad{\tt end}\\
+     \quad{\tt end}\\
 }
 \end{array}\]
 \end{figure}
@@ -234,9 +246,9 @@ Hence all different kind of loop statements can be desugared using conditional s
 \desugar{e_1{\tt ;}~e_2}{(\aFunction{d}{e_2})(e_1)}
 \desugar{{\tt function}~f(\overline{x_i})~e~{\tt end} ~({\tt in~a})}{f = \{ {\tt ``\_arg"} = \{\}, {\tt ``\_call"} = \lambda\_arg.}
 \desugarline{
-  \quad(\lambda\_outer.\\
-  \quad\quad(\lambda\_local.e)(\{{\tt ``\_outer"} = \_outer, {\tt ``\_arg" }= \_arg\})\\
-  \quad)(a)
+  \quad(\lambda\_outer.\lambda\_local.e)(\\
+  \quad\{{\tt ``\_outer"} = \_outer, {\tt ``\_arg" }= \_arg\}, ~a\\
+  \quad)\\
 \}
 }
 \desugar{f(\overline{v_i})}{(f.\_call)(\{\overline{x_i = v_i}\})}
