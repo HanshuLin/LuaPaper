@@ -1,13 +1,16 @@
+\newcommand{\abFunction}[2]{{\tt function} ~{#1}~{\tt return}~{#2}~{\tt end}}
+\newcommand{\semanticFullRaw}[4]{{#1},{#2} \Downarrow {#3},{#4}}
+\newcommand{\semanticFull}[4]{{#1},{#2} \Downarrow {#3}, {#4}}
+
 \chapter{Featherweight Lua}
 Although Lua has a minimal syntax compared to most other programming languages, it is still too complex for formal reasoning. Therefore, to make it simpler for reading and analyzing, we further simplify the syntax from the full version Lua. We call the new, simplified language {\it Featherweight Lua} (FWLua). In FWLua, we remove unnecessary syntax and reduce the language to its essential core.
 
-In this chapter, we first introduce several primary parts in Lua --- expressions and statements, which can be simplified to FWLua in a straightforward way. Then, we are going to talk about functions and metatables, which are both key elements of Lua, in more detail in the chapter. Meanwhile, we will also give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
+In this chapter, we first introduce how we deal with several primary parts in Lua --- expressions and statements. Then, we are going to talk about functions and metatables, which are both key elements of Lua, in more detail in the chapter. Meanwhile, we will also give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
 
-\section{Expressions}
-Lua splits statements and expressions, though they overlap because of functions and function application. As a consequence, we merge expressions and statements, and treat both of them as expressions in FWLua. In this section, therefore, we discuss our expressions in FWLua and why we think these simplifications remain true to the spirit of Lua. 
+\section{Expressions in FWLua}
+As mentioned before, Lua splits statements and expressions, though they overlap because of functions and function application. As a consequence, we merge expressions and statements, and treat both of them as expressions in FWLua. In this section, therefore, we discuss our expressions in FWLua and why we think these simplifications remain true to the spirit of Lua. 
 
 \subsection{Lua's Expressions}
-
 We keep constant values in the language.
 These types include Number, String and Boolean representing values in the original syntax.
 There is also a special expression {\tt nil}, similar to {\tt null} in Java and to both {\tt null} and {\tt undefined} in JavaScript.
@@ -31,7 +34,6 @@ It is similar to the second case, except that Lua allows an expression to dynami
 
 The computed table access case can simulate the other approaches.
 Referring to {\tt tbl.x} is identical to {\tt tbl["x"]}.
-%FIXED: Mention which version of Lua added support for _ENV.
 In the version of Lua 5.2, there is a new feature, which is using a reserved variable {\tt \_ENV} to represent the table of global environment.
 Therefore, instead of referring to {\tt x}, we can use {\tt \_ENV.x}.
 
@@ -61,9 +63,8 @@ The syntax of expressions in Featherweight Lua is presented and discussed in Sec
 According to Roberto Ierusalimschy~\cite{PIL},
 statements in Lua include assignment, control structures, function calls, and variable declarations.
 
-%FIXED: Are these your words?  Let's discuss at the next meeting.
-Our strategy for simplifying statements is to classify them into some syntactic groups, and then pick up the basic syntactic form for each of them.
-We also remove blocks from our syntax since we can desugar sequences of statements easily.
+Our strategy for simplifying statements is to classify them into some syntactic groups, and then choose the basic syntactic form for each of them.
+We also remove blocks from our syntax since we can desugar sequences of statements easily, and implement block using lambda function.
 
 We first discuss assignment statements.
 Every assignment statement changes the store. 
@@ -75,8 +76,8 @@ For instance:
 
 \begin{verbatim}
 a = 3;   --A single assignment statement
-b, c, d = 1, 2, 3;   --Multiple assignment statments
-e, f = `hello', {};   --Handles different types
+b, c, d = 1, 2, 3;   --Destructuring assignment
+e, f = `hello', {};   --Destructuring assignment for different types
 \end{verbatim}
 
 There is also a form of assignment that allows using a list of expressions as either variables or values to complete multiple assignments in one statement. However, we choose the basic assignment form without lists or local scope.  The other forms can be produced with syntactic sugar.
@@ -98,10 +99,12 @@ repeat  --A repeat loop
   i = i + 1
   print(i)
 until
-i == 10
+  i == 10
 
-if (x == 0) then print("HelloWorld") --An if statement
-else print("ByeWorld")
+if (x == 0) then 
+  print("HelloWorld") --An if statement
+else 
+  print("ByeWorld")
 end
 \end{verbatim}
 
@@ -129,27 +132,25 @@ Functions are used to complete a set of computations and return a value.
 To define a function in Lua, each of the following statements can be used:
 \begin{verbatim}
 function foo(x) x = x + 1 return x end    --normal function definition
-foo = function (x) x = x + 1 return x end --using anonymous function
+foo = function (x) x = x + 1 return x end --assign a first-class function
 \end{verbatim}
+
 We can invoke this function as follows:
+
 \begin{verbatim}
 foo(4);
 \end{verbatim}
+
 In addition, functions in the full version of Lua provide multiple expressions in the function, both in defining arguments and returning values. For example:
-\begin{verbatim}
-function add(x, y)
-  local i = x + y;
-  return i;
-end
-\end{verbatim}
-and also:
+
 \begin{verbatim}
 function inc(x, y)
   x = x + 1;
   y = y + 1;
-  return (x,y);
+  return (x, y);
 end
 \end{verbatim}
+
 We can see that a function can both take more than one argument and return multiple values.
 
 However, we want to keep the syntax for FWLua as simple as we can. Therefore, we represent multiple expressions through desugaring, which we discuss later in this chapter.
@@ -166,7 +167,6 @@ In the syntax, {\tt x} represents the argument a function takes (only one allowe
 
 We will talk about some key factors related to functions in the following sections, using some examples to make them easier to comprehend.
 
-%FIXED: Scoping and closures are different issues.  You need to divide this section up into two parts.
 \subsection{Scoping}
 Before talking about closures in Lua and FWLua, we will show some examples to help understand closures in functions.
 \begin{verbatim}
@@ -183,7 +183,6 @@ bar() --will print 42
 The above example shows that Lua uses static or lexical scoping.
 Lexical scoping means that a stack containing variables in one's outer scope is defined once a function or a block is declared.
 On the other hand,
-%FIXED: Need to revise the definition of dynamic scoping.  Let's discuss.
 with dynamic scoping, the compiler goes throughout the whole scope link, and thus find the variable that is being called.
 The above example is testing Lua's scoping mechanism.
 Once the function {\tt foo()} is invoked in function {\tt bar()}, Lua finds the value of variable {\tt x} from the stack of function {\tt foo()}, and then find its outer scope.
@@ -195,7 +194,7 @@ In contrast, if Lua used dynamic scoping, the above example would print 100.
 Closures in a programming language enable functions to access variables in their outer scope. Closures is as important as scoping. It is commonly discussed together with scoping.
 
 For a concrete understanding of closures, consider the following example:
-%------MODEIFIED-------
+%------END-------
 \begin{verbatim}
 function foo()
   local x = 0;
@@ -213,7 +212,6 @@ print((foo())()) --return 1
 
 This shows closures in Lua.
 In the example, once the variable {\tt bar} is declared, a stack storing scoping information is created.
-%FIXME: Revise this next sentence on bar and foo -- the key point is that foo() returns a closure.
 In the condition, calling {\tt bar} and {\tt foo()} seems the same. However, they will point to two independent stack in inner environment, just as the above instance shows. In other words, the function {\tt foo()} returns a closure.
 
 For setting variables, we need very exact directions of where FWLua should set values. This is a very interesting and important character in FWLua. We will discuss this issue more in Section~\ref{sec: FWLUAsemantic}, and then introduce our translation from Lua to FWLua in Chapter~\ref{chp:luaTranslation}.
@@ -244,44 +242,37 @@ This quality in Lua is very helpful for us to give the further abstract syntax i
 \subsection{Lambda calculus}
 The restriction of allowing a function in FWLua to only take one argument comes from the lambda calculus. The method of lambda calculus is a formal algorithm representing computations based on functions. Function abstraction and function application are the two main parts in the syntax of lambda calculus. 
 
-%FIXED: Still need to discuss this section
-%---------MODIEFIED-----------
 There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda calculus. It is because lambda calculus is so powerful that enables us to remove many features, which can be represented using lambda calculus, from the full version of Lua. We will further show the detail in the section \ref{sec:TraFunc}.
 
 In the very basic lambda calculus, the symbol `$\lambda$' means a function, the letter appears after `$\lambda$' means the argument this function takes.
-%Actually, these two letters form the basic called function.
 Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the perimeter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
-%---------MODIEFIED-----------
 
 \begin{verbatim}
 (function(x) return x end)(a)
 \end{verbatim}
+
 can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
 
 Although we only allow one argument in a function, functions with multiple arguments in Lua are common. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
-
-\newcommand{\abFunction}[2]{{\tt function} ~{#1}~{\tt return}~{#2}~{\tt end}}
-\newcommand{\semanticFullRaw}[4]{{#1},{#2} \Downarrow {#3},{#4}}
-\newcommand{\semanticFull}[4]{{#1},{#2} \Downarrow {#3}, {#4}}
 
 
 \section{Metatables and metamethods}
 Metatables allow us to define behaviors as fallbacks when Lua cannot handle an operation. These operations even include symbols whose behavior we think of as being fixed, such as ``+'' or ``-''.
 Also, metamethods in metatables can be automatically invoked once the relative conditions are satisfied. In other words, the behaviors of tables can be further controlled to follow our new rules in the program by using metatables. That is the reason why metatables are such an important characteristic of Lua.
 
-However, metatables can only be set for tables. We cannot assign a metatable to some constant values, like numbers and strings. Those data types are too basic, and changing behaviors of some operator for them will mess up the world. At least, the authors do not want ``1 + 1'' results in 3. 
+However, metatables can only be set for tables. We cannot assign a metatable to some constant values, like numbers and strings. Those data types are too basic, and changing behaviors of some operator for them will cause the chaos. At least, the authors do not want an equation ``1 + 1'' results in 3. 
 
 Although metatables are a core element in Lua, we represent their behavior as part of the desugaring process, rather than bringing it into the basic semantics of FWLua.
 It is because we want to make FWLua as clean and simple as possible.
 We encode metatables in the translation phase, which means metatables can be further translated as a special inner table when we desugar Lua into FWLua.
 
 \subsection{Introduction about metatables}
-Lua create a table value without any metatable by default.
+Lua constructs a table without any metatable by default.
 However, we can set a metatable to tables.
 There are two reserved functions related to metatables: {\tt setmetatable()} and {\tt getmetatable()}. These two functions are used for setting and getting a metatable of a table. 
 Lua allows users to set any table as a metatable of other tables. Or, there is a need of C code to manipulate the metatables using other types. However, we will skip studying C in the paper and only discuss the former condition.
 
-\subsection{What's in metatables}
+\subsection{What's in metatable}
 Metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence they are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. One of the purposes of metamethods is to let developers change the behavior of the programming language to a certain degree.
 
 Furthermore, there are 4 different kinds of metamethods in Lua based on the reference \cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.

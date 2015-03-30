@@ -1,0 +1,51 @@
+\chapter{Substitute function in Haskell\label{app:substitute}}
+
+\begin{verbatim}
+substitute :: Expression -> String -> Value -> Either ErrorMsg Expression
+substitute expr a v = do
+  case expr of
+    Seq expr1 expr2 -> do
+      expr1' <- substitute expr1 a v
+      expr2' <- substitute expr2 a v
+      return $ Seq expr1' expr2'
+    Val value -> do
+      case value of
+        VFunc arg body -> do
+          body' <- substitute body a v
+          return $ Val $ VFunc arg body'
+        VArg arg -> do
+          case (arg == a) of
+            True -> return $ Val v
+            False -> return $ Val value
+        otherwise -> return expr
+    New -> return expr
+    Rget table key -> do
+      table' <- substitute table a v
+      key' <- substitute key a v
+      return $ Rget table' key'
+    Rset table key val -> do
+      table' <- substitute table a v
+      key' <- substitute key a v
+      val' <- substitute val a v
+      return $ Rset table' key' val'
+    Opraw expr1 op expr2 -> do
+      expr1' <- substitute expr1 a v
+      expr2' <- substitute expr2 a v
+      return $ Opraw expr1' op expr2'
+    Funcall func expr -> do
+      case func of
+        (Val (VFunc arg e)) -> do
+          case (arg == a) of
+            True -> do
+              expr' <- substitute expr a v
+              return $ Funcall func expr'
+            False -> do
+              func' <- substitute func a v
+              expr' <- substitute expr a v
+              return $ Funcall func' expr'
+        otherwise -> do
+          func' <- substitute func a v
+          expr' <- substitute expr a v
+          return $ Funcall func' expr'
+
+\end{verbatim}

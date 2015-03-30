@@ -1,7 +1,6 @@
 \chapter{Operational semantics for Featherweight Lua} \label{chp: syntax and semantic}
-%---------------------------------MODIFIED by HANSHU---------------------------------
 The operational semantics of Featherweight Lua are deliberately minimal. No hooks or control structures are included in the semantics. Feartherweight Lua has two unique characteristics:
-users have to exactly set or get a variable in FWLua without any ambiguous direction, and functions in FWLua are lambda functions.
+getting and setting variables in FWLua are function-like, and functions in FWLua are lambda functions.
 However, tables in FWLua are the primary data structure, just the same as Lua.
 
 \section{Syntax for Featherweight Lua}\label{sec: FWLUAsyntax}
@@ -16,8 +15,7 @@ we feel it is a minor change that greatly simplifies the complexity
 of our semantics.
 
 The full syntax of Featherweight Lua is given by Figure \ref{fig:FW2Syx}. We can see that there are both old version expressions such as constants and binary operations, and statements. For expressions, we keep registers, constants, and new allocations.
-Instead of table select {\tt e\textsubscript{1}[e\textsubscript{2}]}, we use the function {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, where e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table.
-Unlike table select, {\tt rawget} has no ``hooks'' that must be considered; table select can therefore be desugared using {\tt rawget}.
+Instead of variable-like syntax {\tt e\textsubscript{1}[e\textsubscript{2}]}, we use a function-like syntax for getting variable {\tt rawget(e\textsubscript{1},e\textsubscript{2})}, where e\textsubscript{1} is the table and e\textsubscript{2} is the key in that table. The reason is that rawget is an important reserved function in Lua, which can getting a variable without any hooks. Therefore, table select in Lua can be desugared using {\tt rawget} in FWLua.
 A set of hooks also exists in the table assignment statements, so we instead use the raw function {\tt rawset(e\textsubscript{1},e\textsubscript{2},e\textsubscript{3})}, where e\textsubscript{1} also means the table, e\textsubscript{2} means the key, and e\textsubscript{3} means the value that we want to assign.
 
 Finally, we add the syntax for functions, that is {\tt function x return e end} with only one argument {\tt x} and body of function {\tt e}. However, for brevity we adopt the lambda calculus symbol $\lambda$ for a simpler syntax represention to make it easier to read. In other words, the syntax ``{\tt $\lambda$x.e}'' means ``{\tt function x return e end}'' in FWLua. We define it as the function abstraction being used as function definition for the reasons we have mentioned before. 
@@ -78,7 +76,13 @@ This semantic shows an important charactor of FWLua: no ambiguous direction. In 
 However, different operators may be used in different data types, like {\tt ..} for strings and {\tt +} for numbers. Therefore, there are two functions used for the type checking against operands: {\tt validL(c, op)} for the left hand side and {\tt validR(c, op)} for another side. The evaluation will be done only if the types of both operands are valid.
 What is more, the operands in FWLua must be a constant (Number, Boolean, String). It is because tables in Lua need metatables to control their behavior in binary operations. We will place this issue in the desugaring phase and further talk about how we transfer binary operations for table in Lua into FWLua in the section ~\ref{sec:TranslateTabls}.
 
-{\bf FW-FUNC-CALL}: This rule evaluates a function application in FWLua. At the beginning, it evaluates an expression to a function. Then it evaluates the argument of this function.  Finally, it evaluates the function body with the substitution from arguments to values. 
+{\bf FW-FUNC-APP}: This rule evaluates a function application in FWLua. At the beginning, it evaluates an expression to a function. Then it evaluates the argument of this function.  Finally, it evaluates the function body with the substitution from arguments to values. 
+
+%--------MODIFIED
+The substitution step is also like evaluating. Actually, it walks through every node in an expression, and then substitutes values to arguments based on different type of node. A recursive call might be needed due to some specific type of node in an expression.
+What is more, there is possibly a special condition called {\tt function renaming} appearing in a function when the nested function has some same-name arguments with the outer function. The substitution function considers this condition by a set of algorithms. The Appendix~\ref{app:substitute} shows the details of substitution function written by Haskell.
+%--------END
+
 
 
 % -------------------------------[FW2.1][SEMANTIC]--------------------------------
@@ -148,7 +152,7 @@ What is more, the operands in FWLua must be a constant (Number, Boolean, String)
 }{
   \semanticFull{e_1 ~op~ e_2}{\sigma}{c}{\sigma'}
 }
-\ssrule{FW-FUNC-CALL}{
+\ssrule{FW-FUNC-APP}{
   \semanticFull{e_1}{\sigma}{\aFunction{x}{e}}{\sigma_1} \quad
   \semanticFull{e_2}{\sigma_1}{v_1}{\sigma_2} \\
   \semanticFull{e[x:=v_1]}{\sigma_2}{v}{\sigma'} 
