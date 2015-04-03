@@ -27,7 +27,7 @@ Above all, the structure of our FWLua interpreter is shown in the Figure~\ref {f
 \end{figure}
 
 \section{ParserTD.hs}
-Fortunately, there is a package named {\tt Text.ParserCombinators.Parsec} in Haskell, providing a set of functions for parsing tokens and thus building parsers. We will use this package to build the parser. Reference~\ref{IHAS} shows the details of this package.
+Fortunately, there is a package named {\tt Text.ParserCombinators.Parsec} in Haskell, providing a set of functions for parsing tokens and thus building parsers. We will use this package to build the parser. Reference~\cite{IHAS} shows the details of this package.
 
 The key role in a functional programming language is recursive functions. Basically, this package allows us to parse token one by one recursively and thus control the data flow. According to this, the parser uses {\tt parsec} for passing tokens and it takes strings as tokens. Then it returns a tree --an abstract syntax tree (AST).
 The AST is made up of different types of nodes.
