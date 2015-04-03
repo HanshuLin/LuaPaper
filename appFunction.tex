@@ -33,14 +33,21 @@ rawset(_ENV, "foo", rawset(rawset({}, "_arg", {}), "_call",
                     (function () return
                       ((rawget(_ENV, "getValue"))("x"))(_local)
                     end)(
-                      (((rawget(_ENV, "setValue"))("x"))(
-                      ((rawget(_ENV, "getValue"))("x"))(_local) + 1))(_local)
+                      (((rawget(_ENV, "setValue"))("x"))
+                        (
+                          (
+                            (
+                              rawget(_ENV, "getValue")
+                            )("x")
+                          )(_local) + 1
+                        )
+                      )(_local)
                     )
-                  end)(rawset(rawset({}, "_outer", _outer), "_arg", _arg))
+                  end
+                  )(rawset(
+                      rawset({}, "_outer", _outer), "_arg", _arg))
                 end)(_local)
               end)
-
-
 
           end)(
             rawset(_local, "x", 10)
@@ -51,7 +58,5 @@ rawset(_ENV, "foo", rawset(rawset({}, "_arg", {}), "_call",
 );
 
 rawset(_ENV, "bar", (rawget(rawget(_ENV, "foo"), "_call"))({}));
-
 (rawget(rawget(_ENV, "bar"), "_call"))({});
-
 \end{verbatim}

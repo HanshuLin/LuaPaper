@@ -1,7 +1,8 @@
 \chapter{Operational semantics for Featherweight Lua} \label{chp: syntax and semantic}
-The operational semantics of Featherweight Lua are deliberately minimal. No hooks or control structures are included in the semantics. Feartherweight Lua has two unique characteristics:
-getting and setting variables in FWLua are function-like, and functions in FWLua are lambda functions.
-However, tables in FWLua are the primary data structure, just the same as Lua.
+The operational semantics of Featherweight Lua are deliberately minimal. No hooks, fallbacks or control structures are included in the semantics. 
+
+FWLua can be very helpful in analyzing Lua, since it provides easy way of transfering important features, which are first-class functions, table structures and metatables in Lua into FWLua.
+In FWLua, functions are treated as first-class values, meaning they can be assigned to a variable. Also, tables in FWLua are the primary data structure, just the same as in Lua. Finally, we don't provide any default metatables built in FWLua. Instead, we can easily build a structure like metatables and metamethods in FWLua via translationg, which we will discuss in Chapter~\ref{chp:luaTranslation}.
 
 \section{Syntax for Featherweight Lua}\label{sec: FWLUAsyntax}
 We now give the complete syntax of FWLua. In this section, we introduce the syntax for FWLua in Section~\ref{sec: FWLUAsyntax} and the corresponding semantics in Section~\ref{sec: FWLUAsemantic}.
@@ -22,7 +23,7 @@ Finally, we add the syntax for functions, that is {\tt function x return e end} 
 
 Also, there is the syntax of function application, and the structure is pretty simple: {\tt e\textsubscript{1}(e\textsubscript{2})}, where e\textsubscript{1} presents the name of function and e\textsubscript{1} means the value this function applies.
 
-Not that there is no Boolean value in the list of constants. Because functions are similar to lambda calculus, the value of true and false can be encoded into specific functions. The reference~\cite{LC} has mainly talked about what these functions look like.
+Not that there is no Boolean value in the list of constants. Because functions are similar to lambda calculus, the value of true and false can be encoded into specific functions. Rojas~\cite{LC} talks about what these functions look like.
 
 % ----------------------------[FW2.2][SYNTAX]-----------------------------
 \begin{figure}
@@ -56,18 +57,21 @@ Not that there is no Boolean value in the list of constants. Because functions a
 \end{figure}
 
 \section{Semantics for Featherweight Lua}\label{sec: FWLUAsemantic}
-The full big-step semantics of Featherweight Lua (evaluation rules) is shown by Figure \ref{fig:FW2.1Sem}. In the semantics, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' is a table mapping registers to tables. Since we have mentioned that the table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``registers''. Secondary, the variable ``table'' is a table that maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
+The full big-step semantics of Featherweight Lua (evaluation rules) is shown by Figure \ref{fig:FW2.1Sem}. In the semantics, there are 5 kinds of runtime variables: store, table, function, value, and name. The variable ``store'' is mapping of registers to tables. Since we have mentioned that the table is the primary data structure in FWLua, all tables will be stored in the store with specific addresses, which are also ``registers''. Secondary, the variable ``table'' is a table that maps keys and values. ``Function'' is used as functions. The variable ``value'' means all types of values in FWLua. There is also a variable called ``name'' to represent some names using strings.
 
 In the basic evaluation rules, we can see FWLua takes current expressions and stores before evaluating and will return a value and manipulated store when it is done.
 
-{\bf FW-VALUE}: This rule takes the value and returns it, with no other side effects.
+{\bf FW-VALUE}: 
+This rule takes the value and returns it, with no other side effects.
 
-{\bf FW-NEW}: This rule allocates a new memory location in the store for a new, empty table {\tt \{\}}. This table is added to the store (register to table), with the key of the new address.  The new address is the resulting value.
+{\bf FW-NEW}: 
+This rule allocates a new memory location in the store for a new, empty table {\tt \{\}}. This table is added to the store (register to table), with the key of the new address.  The new address is the resulting value.
 
-{\bf FW-RAWGET}: In the evaluation rule of {\tt rawget()},
-This semantic shows an important charactor of FWLua: no ambiguous direction. In this evaluation rule, FWLua takes 2 arguaments, which are table and key, for getting a variable in the right place. The first expression in this rule presents a direction, and because there are not any reserved words in FWLua, users need to give an exact direction to FWLua to let it know where it should go.
+{\bf FW-RAWGET}: 
+This semantic shows an interesting charactor of FWLua because it is very different with many common syntax in other language. In this evaluation rule, FWLua takes 2 arguments: table and key, for getting a variable in the right place. The first expression in this rule presents a direction, and the second expression is string type token, representing the name of variable in this table. What is more, because there are not any reserved words in FWLua, users may possibly need to use a recursive {\tt rawget()} syntax in the first argument for locating the target table.
 
-{\bf FW-RAWSET}: {\tt rawset()} is similar to {\tt rawget()}: it evaluates its 3 arguments in the body and returns them as a table, key, and value at the first step and then attempts to find that table in the store as the second step. The difference is that the executer then adds the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as the user needs: if the key in the {\tt rawset} function does not already exist in the table, it will be created automatically.
+{\bf FW-RAWSET}: 
+{\tt rawset()} is similar to {\tt rawget()}: it evaluates its 3 arguments in the body and returns them as a table, key, and value at the first step and then attempts to find that table in the store as the second step. The difference is that the executer then adds the pair with key and value into this table if this table exists in the store. Since Lua merges variable declaration and assignment statement into one, {\tt rawset()} now can represent both as the user needs: if the key in the {\tt rawset} function does not already exist in the table, it will be created automatically.
 
 {\bf FW-BINOP}: The evaluation rule for binary operations takes the two operands of the operator, evaluates them to values, and then calculates the final result depending on the expected behavior of the operator\footnote{
   The behavior for most of these operators is straightforward;
@@ -80,7 +84,7 @@ What is more, the operands in FWLua must be a constant (Number, Boolean, String)
 
 %--------MODIFIED
 The substitution step is also like evaluating. Actually, it walks through every node in an expression, and then substitutes values to arguments based on different type of node. A recursive call might be needed due to some specific type of node in an expression.
-What is more, there is possibly a special condition called {\tt function renaming} appearing in a function when the nested function has some same-name arguments with the outer function. The substitution function considers this condition by a set of algorithms. The Appendix~\ref{app:substitute} shows the details of substitution function written by Haskell.
+What is more, there is possibly a special condition called {\tt function renaming} appearing in a function when the nested function has some same-name arguments with the outer function. The substitution function considers this condition by a set of algorithms. The Appendix~\ref{app:substitute} shows the details of substitution function written in Haskell.
 %--------END
 
 

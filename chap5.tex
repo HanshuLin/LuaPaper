@@ -4,10 +4,10 @@
 \newcommand{\translate}[2]{\llbracket {#1} \rrbracket & \xlongequal[]{} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
 \newcommand{\translateline}[1]{ &  & {\begin{array}{@{}l@{}} #1 \end{array}}\\}
 
-\chapter{Lua to Feather Weight Lua}
+\chapter{Lua to Featherweight Lua}
 \label{chp:luaTranslation}
 
-We have introduced the full syntax and semantics of FWLua in Chapter~\ref{chp:CoreFWLua}. We can see that FWLua is a much smaller language than the full version of Lua, with many differences between them.
+We have introduced the full syntax and semantics of FWLua in Chapter~\ref{chp: syntax and semantic}. We can see that FWLua is a much smaller language than the full version of Lua, with many differences between them.
 However, our purpose is to let FWLua capture the essence of Lua with only these core features.
 In this chapter, we discuss how FWLua works like Lua by showing how syntactic desugaring can be used to convert between FWLua and Lua. Since there are many additional features in Lua, we first discuss how to desugar in Lua to let the code fit FWLua. Secondly we give some translation rules from Lua to FWLua.
 
@@ -34,7 +34,7 @@ To normalize it, we need to give a table name to that variable to make it clear.
 Lua provides a reserved table, {\tt \_ENV} to represent the global enviroment. Therefore, every variable now can have a table.
 
 The normal format, in Lua, is {\tt e["e"]}. 
-The expression {\tt t.y} is syntactic sugar with key {\tt y} since the key is the string type in the table. After we desugar these expressions, all variable select expressions in Lua can be represents as the format {\tt e[e]}, such as the following:
+The expression {\tt t.y} is syntactic sugar with key {\tt y} since the key is the string type in the table. After we desugar these expressions, all variable select expressions in Lua can be represented as the format {\tt e[e]}, such as the following:
 
 \begin{verbatim}
 _ENV["x"] ---get the value of x
@@ -60,9 +60,7 @@ Direct table select in Lua is treated as a syntactic sugar, and we desugar it to
 Multiple variable declarations can be represented using a set of single assignment statements. 
 The local variable declaration is more complicated. Lua actually finds out which scope, or which table, should the variable be set in a fixed order. 
 
-%--------MODIFIED
-Local variable is a very interesting point in setting variable. Actually, local variable, as its name, is a key-value pair that only can be access in the local or inner scope. There is a need to allocate a table for recording every local variable in a specific scope. What is more, there are only 2 places allow setting a local variable using reserved word ``{\tt local}'' in Lua: blocks and functions,  while we can easily translate a block into a set of lambda functions. As the result, we can only meet and then handle the local variable issed in translating functions in Lua and thus will mainly discuss it in Section~\ref{sec:TraFunc}. 
-%--------END
+Local variable is a very interesting point in setting variable. Actually, local variable, as its name, is a key-value pair that only can be accessed in the local or inner scope. There is a need to allocate a table for recording every local variable in a specific scope. What is more, there are only 2 places allowed for setting a local variable using reserved word ``{\tt local}'' in Lua: blocks and functions,  while we can easily translate a block into a set of lambda functions. As the result, we can handle the local variable in translating functions in Lua and thus will mainly discuss it in Section~\ref{sec:TraFunc}. 
 
 There is also a reserved function in Lua, rawset, to get rid of effects of metatables in setting variables, which is {\tt rawset(t, k, v)}. This is the reason we build our syntax in FWLua using this format, and will then desugar Lua to FWLua, followed by telling mechanisms in Lua.
 An example of decoding assignments in Lua to FWLua is shown below.
@@ -73,26 +71,8 @@ rawset(rawget(_ENV, "t"), "x", 12) --translated in FWLua
 \end{verbatim}
 
 %--------MODIFIED
-Figure~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua. We can also call this step ``Normalizing'' since this is the first step for the translation, and the main purpose is to remove all syntactic sugars in coding a variables.
+Figure~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua. We can also call this step ``Normalizing'' since this is the first step of handling variables in tables for the translation.The main purpose is to remove all syntactic sugars in dealing with variables. Next, we will talk about translating tables and metatables based on this section.
 %--------END
-
-\begin{figure}
-\caption{Desugaring Lua Variables}\label{fig:desLuaVar}
-{\bf Variable Select:}\[
-\begin{array}{rclcl}
-
-\desugar{e_1.e_2}{e_1[e_2]}
-\desugar{e.x}{e[``x"]}
-
-\end{array}\]
-
-{\bf Variable Declaration \& Update:}\[
-\begin{array}{rclcl}
-
-\desugar{e_1.x=e_2}{e_1[``x"] = e_2}
-\desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}}
-\end{array}\]
-\end{figure}
 
 \section{Tables and Metatables}\label{sec:TranslateTabls}
 Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate and then be evaluated as a new address in the store. 
@@ -144,9 +124,25 @@ Finally, getting and setting an variable in table is a key point. As we mentione
 
 %--------END
 
-Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, rawset expressions in both Lua and FWLua return an address, while an assignment statement in Lua returns nothing. In other words, we simplified the algorithm to make it better for the research in Lua.
+Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, rawset expressions in both Lua and FWLua return an address, while an assignment statement in Lua returns nothing.
 
 \begin{figure}
+\caption{Desugaring Lua Variables}\label{fig:desLuaVar}
+{\bf Variable Select:}\[
+\begin{array}{rclcl}
+
+\desugar{e_1.e_2}{e_1[e_2]}
+\desugar{e.x}{e[``x"]}
+
+\end{array}\]
+
+{\bf Variable Declaration \& Update:}\[
+\begin{array}{rclcl}
+
+\desugar{e_1.x=e_2}{e_1[``x"] = e_2}
+\desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}}
+\end{array}\]
+
 \caption{Desugaring Lua Table}\label{fig:desLuaTable}
 {\bf Table:}\[
 \begin{array}{rclcl}
@@ -204,18 +200,16 @@ function (x) return
 end
 \end{verbatim}
 
-%FIXME: Note that applying these functions is slightly different, so show that as well.
-
 Return statements in Lua functions are optional, which means a function might not return a value. However, return statements are required in every function in FWLua.
 Furthermore, a function in Lua might have its own scope and supports local variables. 
 Since we don't provide local variables to functions in FWLua, we now treat the local scope as a temporary table.
-Now, we discuss details about the fully structure about functions in Lua.
+Now, we discuss details about functions in Lua.
 
 To capture other additional information about Lua functions,
 we translate every function in Lua to a table with fields for basic information about the function. To implement the scope, there are four arguments that must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} for variables in the local enviroment; {\tt \_arg} for storing the arguments of the function; {\tt \_outer} for the  outer scope; and {\tt \_call} is a function to store the body of the function. There is an example in Appendix~\ref{app:function}.
 
 %------KEY------
-In the structure, we only bring 2 new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function applicaion. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recuresive function applicaion.
+In the structure, we only bring 2 new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function applicaion. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recursive function applicaion.
 
 Finally, one of the key point in the function application is to distiguish the scope of the current variable, for example:
 
@@ -323,7 +317,7 @@ function (x) return
 end  --False
 \end{verbatim}
 
-Using these constructs for true and false, we now can translate the basic control structure in Lua, the {\tt if} statement, into a complicated reserved lambda function in FWLua. The reference~\cite{TAPL} shows us the details about translating control structure statements into lambda functions.
+Using these constructs for true and false, we now can translate the basic control structure in Lua, the {\tt if} statement, into a complicated reserved lambda function in FWLua. Pierce~\cite{TAPL} shows us the details about translating control structure statements into lambda functions.
 
 According to our analysis, all forms of loop statements in Lua can be represented by using a set of conditional statements and recursive function calls. For example:
 
@@ -332,7 +326,7 @@ x = 0;
 while x <= 10 do x = x+1; end
 \end{verbatim}
 
-The above code is a loop statement. It increments the variable {\tt x} by one each time, until it equals 10. We can see that, a recursive computation and a conditional statement are in the loop: the program tests whether {\tt x} is equal to 10, and then recursively executes this computation. Therefore, they can be be represent as the following:
+The above code is a loop statement. It increments the variable {\tt x} by one each time, until it equals 10. We can see that, a recursive computation and a conditional statement are in the loop: the program tests whether {\tt x} is equal to 10, and then recursively executes this computation. Therefore, they can be represented as the following:
 
 \begin{verbatim}
 function while()

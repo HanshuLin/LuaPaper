@@ -166,14 +166,9 @@ We see this behavior of Lua as one of its core characteristics.
 \section{Metatables and Metamethods}
 Metatables are one of the more unusual features in Lua. The functions in metatables are called ``metamethods''. Metamethods are automatically called when the specific condition is satisfied. They are usually called ``hooks'' in many programming languages. The primary goal of metatables is to control the basic behavior of tables. For instance, if we want to find a value with a key that does not exist in the table, the {\tt \_\_index} metamethod in the metatable of this table will automatically execute instead of reporting a crash.
 
-There are only a few default functions in the metatable. They include hooks for behavior controlling(also can be called as {\tt Fallback} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by the programmer. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
+There are only a few default functions in the metatable. They include hooks for behavior controlling(also called {\tt Fallbacks} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by the programmer. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
 
-Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua.
-In Section~\ref{sec:FWLuaMetatables} we decide to build a default metatable to simplify our implementation. Meanwhile, more rules about metatable can be found in the ref \cite{LRM}.
-
-%-------MODIFIED
-There is also one thing worth mention: although metatables can control basic behaviors of a table, such as setting a fallback table, it is different with scopes and closures in functions. Metatables serve for tables, and tend to focus on dealing values and variables in  tables. The scoping and closures in functions, which are also handling variables and values, tend to focus on building scopes an hirearchies.
-%-------END
+Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua. Meanwhile, more rules about metatables can be found in the Lua Reference Manual \cite{LRM}.
 
 \section{Tables}\label{sec: LuaTable}
 From Figure~\ref{fig:LuaExp}, we can see that there is an expression for table constructors, which create a new table as a value. Basically, there are many ways of telling the program how to deal with a table and also to specify the values in it. However, the purpose of the different syntax would all be the same: to assign a value to a key in the specific table.
@@ -189,7 +184,7 @@ Also, you can create a table by using a set of expressions like:
 table = { x = 1; y = 2, z = 3 } 
 \end{verbatim}
 
-And this statement can be translated into a set of expressions; we will talk about this more in the Section~\ref{sec:TranslateTabls}.
+And this statement can be translated into a set of expressions; we will talk about this more in Section~\ref{sec:TranslateTabls}.
 
 Tables in Lua are the primary data structure. Almost every type of data structure can be represented with tables in Lua in an efficient way, such as arrays, records or sets. One interesting thing is that arrays and lists are usually used as the basic data structure in other languages. We can easily implement these structures using Lua tables. However, we don't take this as necessary since tables are much more powerful than them.
 

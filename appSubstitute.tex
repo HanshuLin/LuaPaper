@@ -1,7 +1,8 @@
 \chapter{Substitute function in Haskell\label{app:substitute}}
 
 \begin{verbatim}
-substitute :: Expression -> String -> Value -> Either ErrorMsg Expression
+substitute :: Expression -> String -> Value -> 
+              Either ErrorMsg Expression
 substitute expr a v = do
   case expr of
     Seq expr1 expr2 -> do

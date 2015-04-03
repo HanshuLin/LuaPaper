@@ -87,6 +87,7 @@ Lua also features a large number of control structures.
 However, these can be represented with functions,
 following patterns established for the lambda calculus~\cite{TAPL}.
 For instance, the following are some different kinds of control structures in Lua:
+
 \begin{verbatim}
 x = 0
 while x ~= 10 do --A while loop
@@ -130,6 +131,7 @@ While these are departures from Lua, we feel that they are minor discrepancies b
 \section{Functions}
 Functions are used to complete a set of computations and return a value.
 To define a function in Lua, each of the following statements can be used:
+
 \begin{verbatim}
 function foo(x) x = x + 1 return x end    --normal function definition
 foo = function (x) x = x + 1 return x end --assign a first-class function
@@ -169,6 +171,7 @@ We will talk about some key factors related to functions in the following sectio
 
 \subsection{Scoping}
 Before talking about closures in Lua and FWLua, we will show some examples to help understand closures in functions.
+
 \begin{verbatim}
 x=42
 function foo()
@@ -180,6 +183,7 @@ function bar()
 end
 bar() --will print 42
 \end{verbatim}
+
 The above example shows that Lua uses static or lexical scoping.
 Lexical scoping means that a stack containing variables in one's outer scope is defined once a function or a block is declared.
 On the other hand,
@@ -221,6 +225,8 @@ For setting variables, we need very exact directions of where FWLua should set v
 Recursion means that a function can call itself in its body.
 Here, we give an example of a recursive function in Lua, {\tt factorial(n)}.
 
+\newpage
+
 \begin{verbatim}
 function factorial(n)
   if n == 0 then
@@ -240,12 +246,12 @@ Lua uses a call stack to store local variables in one function, and thus impleme
 This quality in Lua is very helpful for us to give the further abstract syntax in FWLua about function, since functions in FWLua would be more like lambda calculus. Next, we will briefly introduce lambda calculus and a key factor for the recursion in lambda calculus called the fix combinator.
 
 \subsection{Lambda calculus}
-The restriction of allowing a function in FWLua to only take one argument comes from the lambda calculus. The method of lambda calculus is a formal algorithm representing computations based on functions. Function abstraction and function application are the two main parts in the syntax of lambda calculus. 
+The restriction of allowing a function in FWLua to only take one argument comes from the lambda calculus. Lambda calculus is a formal language representing computations based on functions. Function abstraction and function application are the two main parts in the syntax of lambda calculus. 
 
-There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda calculus. It is because lambda calculus is so powerful that enables us to remove many features, which can be represented using lambda calculus, from the full version of Lua. We will further show the detail in the section \ref{sec:TraFunc}.
+There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda calculus. It is because lambda calculus is so powerful that enables us to remove many features, which can be represented using lambda calculus, from the full version of Lua. We will further show the detail in Section \ref{sec:TraFunc}.
 
 In the very basic lambda calculus, the symbol `$\lambda$' means a function, the letter appears after `$\lambda$' means the argument this function takes.
-Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the perimeter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
+Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the parameter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
 
 \begin{verbatim}
 (function(x) return x end)(a)
@@ -275,7 +281,7 @@ Lua allows users to set any table as a metatable of other tables. Or, there is a
 \subsection{What's in metatable}
 Metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence they are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. One of the purposes of metamethods is to let developers change the behavior of the programming language to a certain degree.
 
-Furthermore, there are 4 different kinds of metamethods in Lua based on the reference \cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.
+Furthermore, there are 4 different kinds of metamethods in Lua~\cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.
 
 Figure \ref{fig:metatables} introduces the metamethods that play key roles in FWLua and then gives the type of each metamethod.
 
