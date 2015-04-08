@@ -4,12 +4,12 @@ Lua is an extension programming language. It is designed to support general proc
 Our core goal is to develop a formal semantics for a minimal version of Lua. This semantics allows us to formally reason about properties of the Lua language without becoming needlessly mired in unimportant aspects of the full Lua language. In other words, we are attempting to remove those syntactic features we think are less important and thus to keep the core features of Lua, facilitating future research into the language.
 
 
-In our research on Lua~\cite{LRM}, we have identified several features as central to Lua's character. First of all, Lua supports first-class functions. It provides syntax for functions to fulfill specific tasks from users. In addition, Lua's design is centered around tables. Tables are the primary data structure in Lua since they are lightweight, powerful, and can present many other data structures when combined with functions. Besides, Lua has a special feature named ``metatables'', which are reserved tables with a set of functions to control the behaviors of tables in Lua. All of these features make Lua different from other languages, and that is the reason why we identify them as the core features of Lua.
+In our research on Lua~\cite{LRM}, we have identified several features as central to Lua's character. First of all, Lua supports first-class functions. It provides syntax for functions to fulfill specific tasks from users. In addition, Lua's design is centered on tables. Tables are the primary data structure in Lua since they are lightweight, powerful, and can present many other data structures when combined with functions. Besides, Lua has a special feature named ``metatables'', which are reserved tables with a set of functions to control the behaviors of tables in Lua. All of these features make Lua different from other languages, and that is the reason why we identify them as the core features of Lua.
 
 \section{History of Lua}
 At the beginning, there was a programming called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. 
 
-In 1993, there were already some lightweight languages, but none of them provided data description, which means variables in these languages can hardly define a datastructure such like tables or records. Therefore, Lua was created without the need of type declarations to satisfy this requirement~\cite{EOL}.
+In 1993, there were already some lightweight languages, but none of them provided data description, which means variables in these languages can hardly define a data structure such like tables or records. Therefore, Lua was created without the need of type declarations to satisfy this requirement~\cite{EOL}.
 
 With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes including the simplification of the semantics for table constructors,
 the concept of ``fallbacks''---a bunch of programmer defined functions that are called whenever Lua does not know what to do next, and so on. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods, and developers using Lua 3 can create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, The {\tt for} loop statement was introduced in Lua. 
@@ -26,39 +26,28 @@ In the aspect of commodities, Lua has been embedded in many devices, including t
 As an embedded language, there are several characters making Lua unique. 
 Actually these mechanisms are all indispensable in Lua, beside basic data types and data structures.
 
-First of all, Lua supports first class functions.
-An anonymous function can be directly assigned to a variable in Lua just like any other value.
-%Beside, in the system of first class functions, every declared function is treat as a variable with its name and value with its body~\cite{FCV}.
-%In other words, once a user declares a new variable with the name of an existing function, this function will be overridden due to the dynamic type programming mechanism.
+First of all, Lua supports first-class functions. An anonymous function can be directly assigned to a variable in Lua just like any other value.
 
 Also, metatables are used in Lua to control the behavior of tables.
 There are several reserved functions in a metatable, which we can call ``Metaevents''.
-Metatables delivers a fast and clean programming method by defining behaviors in tables and setting hooks for common operators, such as ``+'' or ``*''.
+Metatables delivers a fast and clean programming method by defining behaviors in tables and setting hooks for common operators, such as ``+'' or ``$\ast$''.
 
 In this paper, we keep these features and regard them as part of the core element.
 We will specifically discuss them in each chapter.
 
 \section{Lua and JavaScript}
-Lua is similar in its design to the JavaScript programming language.
-Since JavaScript is widely used in client-side scripting,
-it has received significantly more attention than Lua,
-but many of the challenges are very similar.
+Lua is similar in its design to the JavaScript programming language. Since JavaScript is widely used in client-side scripting, it has received significantly more attention than Lua, but many of the challenges are very similar.
 
-One of the core inspirations for this work is Featherweight JavaScript (FWJS)~\cite{FWJS},
-which also develops a core subset for a much larger language.
-JavaScript is similar to Lua in that it also has first-class functions,
-but it differs in that it has a prototype-based object system.
-Lua's combination of tables and metatables provide similar functionality,
-but with a noticeably different feel.
+One of the core inspirations for this work is Featherweight JavaScript (FWJS)~\cite{FWJS}, which also develops a core subset for a much larger language.
+JavaScript is similar to Lua in that it also has first-class functions, but it differs in that it has a prototype-based object system. Lua's combination of tables and metatables provide similar functionality, but with a noticeably different feel.
 
 Guha et al.~\cite{EOJS} show an alternate approach for reducing JavaScript to a core calculus. The authors also give several models, desugaring processes, a small-step operational semantics, and an implementation.
 
 \section{Operational semantics}
 Operational semantics~\cite{AIOS} are a set of rules defining the behavior of a language.
-These rules are useful for verifying certain important properties for a programming language, such as security.
-Operational semantics can be classified into two different kinds: \emph{small-step semantics} and \emph{big-step semantics}. The former one describes each individual step in the computation, while the latter one shows how the final result of one statement is obtained after being fully executed.
+These rules are useful for verifying certain important properties for a programming language, such as security. Operational semantics can be classified into two different kinds: \emph{small-step semantics} and \emph{big-step semantics}. The former one describes each individual step in the computation, while the latter one shows how the final result of one statement is obtained after being fully executed. In this paper, we show the big-step semantics of Featherweight Lua according to the research on Lua. Generally speaking, writing operational semantics is more like programming in an abstract way. To help validate and experiment with our approach, we also implement an interpreter in Haskell that closely follows the semantics we have developed.
 
-In this paper, we show the big-step semantics of Featherweight Lua according to the research on Lua. Generally speaking, writing operational semantics is more like programming in an abstract way. To help validate and experiment with our approach, we also implement an interpreter in Haskell that closely follows the semantics we have developed.
+
 
 
 

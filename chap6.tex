@@ -1,7 +1,7 @@
 \chapter{Implementation: Interpreter in Haskell}
-Our implementation is an interpreter written in Haskell, which is a popular functional  programming language. 
+Our implementation is an interpreter written in Haskell, which is a popular functional programming language. 
 
-Haskell provides a static type system, a fast runtime speed, since it treats computations as a set of expressions of mathematical functions,  and this will possibly avoid mutable variables. 
+Haskell provides a static type system, a fast runtime speed; since it treats computations as a set of expressions of mathematical functions, and this will possibly avoid mutable variables. 
 
 Haskell also has simple memory allocation due to the research~\cite{PIH}. As the trade off, Haskell does not allow mutable variables, and this would obviously differ in building interpreter between object-oriented language and functional language.
 
@@ -10,8 +10,7 @@ In this chapter, we discuss the structure of our interpreter, and introduce how 
 \section{Structure}
 According to the reference~\cite{WCAI}, we want our interpreter to be loosely-coupled~\cite{looseC}. This term means that the program can be treated as several components. In addition, each component in the program is totally independent, with little or no shared information or definitions with other parts. This term was introduced in case of keeping program adaptive, especially in designing compiler of interpreter. In other words, a loosely-coupled interpreter can handle different kinds programming language by only changing specific key components in it.
 
-Therefore, we design our interpreter to be loosely-coupled by splitting it into several parts. Basically, there are three main parts in the program, and we will make files for each of them. The file {\tt ParserTD.hs} is built for the front tier of our interpreter. Its purpose is to parse the code we write from the top down, and thus translate it into an
-abstract syntax tree (AST) with all defined node by us. 
+Therefore, we design our interpreter to be loosely-coupled by splitting it into several parts. Basically, there are three main parts in the program, and we will make files for each of them. The file {\tt ParserTD.hs} is built for the front tier of our interpreter. Its purpose is to parse the code we write from the top down, and thus translate it into an abstract syntax tree (AST) with all defined node by us. 
 
 Secondly, the file {\tt Executor.hs} is the backend of the interpreter and is used for evaluating the AST that the parser produces. In doing this, all the results Lua returns will be from the executer, after being evaluated. 
 
@@ -29,14 +28,12 @@ Above all, the structure of our FWLua interpreter is shown in the Figure~\ref {f
 \section{ParserTD.hs}
 Fortunately, there is a package named {\tt Text.ParserCombinators.Parsec} in Haskell, providing a set of functions for parsing tokens and thus building parsers. We will use this package to build the parser. Reference~\cite{IHAS} shows the details of this package.
 
-The key role in a functional programming language is recursive functions. Basically, this package allows us to parse token one by one recursively and thus control the data flow. According to this, the parser uses {\tt parsec} for passing tokens and it takes strings as tokens. Then it returns a tree --an abstract syntax tree (AST).
-The AST is made up of different types of nodes.
-Technically, all nodes in the AST will exactly represent the whole program. Every time it parses a token, AST should be modified (even could be ``do nothing'').
+The key role in a functional programming language is recursive functions. Basically, this package allows us to parse token one by one recursively and thus control the data flow. According to this, the parser uses {\tt parsec} for passing tokens and it takes strings as tokens. Then it returns a tree --an abstract syntax tree (AST). The AST is made up of different types of nodes. Technically, all nodes in the AST will exactly represent the whole program. Every time it parses a token, AST should be modified (even could be ``do nothing'').
 
 The parser cares about the syntax of FWLua. In other words, there are no evaluations or storage manipulations in the parsing phase. The only purpose in this block is to sort the inputs by using the structure of the tree, and thus bring the cleaner AST to the executer. The AST is completely created by parser. It also means that we can handle different kinds of inputs by using different parsers with the same executor.
 
 \section{Symbol Table}
-Haskell is a strongly-typed programming language. Everything we want to define needs to have a type, and Haskell strickly follows this type. The tier of the symbol table stores all new types we define and it is used as a user-defined library.
+Haskell is a strongly-typed programming language. Everything we want to define needs to have a type, and Haskell strictly follows this type. The tier of the symbol table stores all new types we define and it is used as a user-defined library.
 
 There are two ways declaring new data types in Haskell: {\tt data} and {\tt type}. The token {\tt type} allows us to define a new type with one single format, while the token {\tt data} defining a new variable type in multiple formats with different tokens. For instance, the part of code in the symbol table is shown:
 
@@ -44,17 +41,17 @@ There are two ways declaring new data types in Haskell: {\tt data} and {\tt type
 type Store = Map Register Table
 type Argument = String
 data Value = 
-    VNil
-  | VArg String
-  | VFunc Argument Expression
-  | VResFunc String
-  | VReg Register
-  | VInt Integer
-  | VBool Bool
-  | VStr String
-  | VTrue
-  | VFalse
-  deriving (Show)
+VNil
+| VArg String
+| VFunc Argument Expression
+| VResFunc String
+| VReg Register
+| VInt Integer
+| VBool Bool
+| VStr String
+| VTrue
+| VFalse
+deriving (Show)
 \end{verbatim}
 
 The type {\tt Store} and {\tt Argument} have the single typing paradigm. They don't need a specific token to be distinguished. On the contrary, the data {\tt Value} has multiple cases and thus needs different tokens (such as {\tt VArg}, {\tt VFunc} and {\tt VInt} in the code above).
@@ -64,3 +61,5 @@ The type {\tt Store} and {\tt Argument} have the single typing paradigm. They do
 
 \section{Run and Runfile}
 We have also built a run file to test if our interpreter works as intended. What is more, this file links all components that we introduced before. In the run file, we treat inputs as a string flow. Then it will parse it, execute the AST and finally output the results. The results include the desugared code, detail of the AST, the summary of store, and final results. Since it shows all the information that we need, we can debug our interpreter due to the outputs from this run file.
+
+

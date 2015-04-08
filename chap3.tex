@@ -66,27 +66,21 @@ statements in Lua include assignment, control structures, function calls, and va
 Our strategy for simplifying statements is to classify them into some syntactic groups, and then choose the basic syntactic form for each of them.
 We also remove blocks from our syntax since we can desugar sequences of statements easily, and implement block using lambda function.
 
-We first discuss assignment statements.
-Every assignment statement changes the store. 
+We first discuss assignment statements. Every assignment statement changes the store. 
 
-Lua is also built to be a dynamic typed programming language, 
-which means type declarations are not needed in assignment statements.
-Based on this, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements.
-For instance:
+Lua is also built to be a dynamic typed programming language, which means type declarations are not needed in assignment statements. Based on this, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements. For instance:
 
+\newpage
 \begin{verbatim}
-a = 3;   --A single assignment statement
-b, c, d = 1, 2, 3;   --Destructuring assignment
-e, f = `hello', {};   --Destructuring assignment for different types
+a = 3; --A single assignment statement
+b, c, d = 1, 2, 3; --Destructuring assignment
+e, f = `hello', {}; --Destructuring assignment for different types
 \end{verbatim}
 
-There is also a form of assignment that allows using a list of expressions as either variables or values to complete multiple assignments in one statement. However, we choose the basic assignment form without lists or local scope.  The other forms can be produced with syntactic sugar.
+There is also a form of assignment that allows using a list of expressions as either variables or values to complete multiple assignments in one statement. However, we choose the basic assignment form without lists or local scope. The other forms can be produced with syntactic sugar.
 In Chapter~\ref{chp:luaTranslation} we review the desugaring process in more depth.
 
-Lua also features a large number of control structures.
-However, these can be represented with functions,
-following patterns established for the lambda calculus~\cite{TAPL}.
-For instance, the following are some different kinds of control structures in Lua:
+Lua also features a large number of control structures. However, these can be represented with functions, following patterns established for the lambda calculus~\cite{TAPL}. For instance, the following are some different kinds of control structures in Lua:
 
 \begin{verbatim}
 x = 0
@@ -96,7 +90,7 @@ while x ~= 10 do --A while loop
 end
 
 i = 0
-repeat  --A repeat loop
+repeat --A repeat loop
   i = i + 1
   print(i)
 until
@@ -109,31 +103,24 @@ else
 end
 \end{verbatim}
 
-Also, they can be represented using a set of lambda functions.
-We will further discuss it in the Chapter \ref{chp:luaTranslation}.
-Consequently, we eliminate these control statements from FWLua.
+Also, they can be represented using a set of lambda functions. We will further discuss it in the Chapter \ref{chp:luaTranslation}. Consequently, we eliminate these control statements from FWLua.
 
 \section{Integration}
-Finally, we treat every statement as an expression for simplicity in FWLua.
-However, this means that FWLua is not a true subset of Lua.
-Consider the following expressions:
+Finally, we treat every statement as an expression for simplicity in FWLua. However, this means that FWLua is not a true subset of Lua. Consider the following expressions:
 
 \begin{verbatim}
-3;   --A constant value
-x;   --A variable
-a = b = 10;   --Multiple statements
+3; --A constant value
+x; --A variable
+a = b = 10; --Multiple statements
 \end{verbatim}
 
-Lua does not allow constants or variables as stand-alone statements,
-and chained assignments are not supported in Lua.
-While these are departures from Lua, we feel that they are minor discrepancies between the languages.
+Lua does not allow constants or variables as stand-alone statements, and chained assignments are not supported in Lua. While these are departures from Lua, we feel that they are minor discrepancies between the languages.
 
 \section{Functions}
-Functions are used to complete a set of computations and return a value.
-To define a function in Lua, each of the following statements can be used:
+Functions are used to complete a set of computations and return a value. To define a function in Lua, each of the following statements can be used:
 
 \begin{verbatim}
-function foo(x) x = x + 1 return x end    --normal function definition
+function foo(x) x = x + 1 return x end --normal function definition
 foo = function (x) x = x + 1 return x end --assign a first-class function
 \end{verbatim}
 
@@ -184,14 +171,7 @@ end
 bar() --will print 42
 \end{verbatim}
 
-The above example shows that Lua uses static or lexical scoping.
-Lexical scoping means that a stack containing variables in one's outer scope is defined once a function or a block is declared.
-On the other hand,
-with dynamic scoping, the compiler goes throughout the whole scope link, and thus find the variable that is being called.
-The above example is testing Lua's scoping mechanism.
-Once the function {\tt foo()} is invoked in function {\tt bar()}, Lua finds the value of variable {\tt x} from the stack of function {\tt foo()}, and then find its outer scope.
-It means the scope in Lua is static and immutable. That is the reason why we also call this ``static scope''.
-In contrast, if Lua used dynamic scoping, the above example would print 100.
+The above example shows that Lua uses static or lexical scoping. Lexical scoping means that a stack containing variables in one's outer scope is defined once a function or a block is declared. On the other hand, with dynamic scoping, the compiler goes throughout the whole scope link, and then locates the variable that is being called. The above example is testing Lua's scoping mechanism. Once the function {\tt foo()} is invoked in function {\tt bar()}, Lua finds the value of variable {\tt x} from the stack of function {\tt foo()}, and then find its outer scope. It means the scope in Lua is static and immutable. That is the reason why we also call this ``static scope''. In contrast, if Lua used dynamic scoping, the above example would print 100.
 
 %------MODEIFIED-------
 \subsection{Closures}
@@ -204,8 +184,8 @@ function foo()
   local x = 0;
   return 
     function() 
-       x = x + 1;
-       return x; 
+      x = x + 1;
+      return x; 
     end;
 end
 bar = foo();
@@ -243,7 +223,7 @@ In the example, we can see that only defining the function {\tt factorial(n)} is
 
 Lua uses a call stack to store local variables in one function, and thus implement recursive functions~\cite{begLua}. Theoretically, when a function itself is called in its body, the interpreter will automatically treat it as just a variable and will further finish it after the function is done. In other words, multiple calls to the same function can be active at the same time without the crashes reporting ``undefined'' in Lua.
 
-This quality in Lua is very helpful for us to give the further abstract syntax in FWLua about function, since functions in FWLua would be more like lambda calculus. Next, we will briefly introduce lambda calculus and a key factor for the recursion in lambda calculus called the fix combinator.
+This quality in Lua is very helpful for us to give the further abstract syntax in FWLua about function, since functions in FWLua would be more like lambda calculus. Next, we will briefly introduce lambda calculus.
 
 \subsection{Lambda calculus}
 The restriction of allowing a function in FWLua to only take one argument comes from the lambda calculus. Lambda calculus is a formal language representing computations based on functions. Function abstraction and function application are the two main parts in the syntax of lambda calculus. 
@@ -251,15 +231,15 @@ The restriction of allowing a function in FWLua to only take one argument comes 
 There are several advantages using lambda calculus: it can capture the essence of functional programming language; it has a minimal syntax while is able to build a very complex features. Functions in FWLua will use the system of lambda calculus. It is because lambda calculus is so powerful that enables us to remove many features, which can be represented using lambda calculus, from the full version of Lua. We will further show the detail in Section \ref{sec:TraFunc}.
 
 In the very basic lambda calculus, the symbol `$\lambda$' means a function, the letter appears after `$\lambda$' means the argument this function takes.
-Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the parameter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the function call in FWLua:
+Besides, lambda calculus uses another expression as the body of function to form the function abstraction. What is more, in representing a function application, there is also an extra letter behind the function abstraction meaning ``the parameter this function applies''. We can represent functions in FWLua using lambda calculus. For instance, the following is a function application in FWLua:
 
 \begin{verbatim}
 (function(x) return x end)(a)
 \end{verbatim}
 
-can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
+This can be represented as a function application ({\tt $\lambda$x.x a}) using lambda calculus. In the example, the expression {\tt $\lambda$x.x} means the function abstraction, taking argument {\tt x} and returning {\tt x} as the result. Furthermore, the letter {\tt a} shows the variable that this function applies.
 
-Although we only allow one argument in a function, functions with multiple arguments in Lua are common. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we do the syntactic desugaring according to the basic lambda calculus.
+Although we only allow one argument in a function, functions with multiple arguments in Lua are common. Lambda calculus also gives the solution about this. Based on the syntax, the function taking 2 arguments ({\tt x} and {\tt y}) can be shown as {\tt $\lambda$x.$\lambda$y.y}. We will further talk about how we implement the syntactic desugaring according to the basic lambda calculus in Chapter~\ref{chp:luaTranslation}.
 
 
 \section{Metatables and metamethods}
@@ -279,7 +259,7 @@ There are two reserved functions related to metatables: {\tt setmetatable()} and
 Lua allows users to set any table as a metatable of other tables. Or, there is a need of C code to manipulate the metatables using other types. However, we will skip studying C in the paper and only discuss the former condition.
 
 \subsection{What's in metatable}
-Metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered, hence they are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. One of the purposes of metamethods is to let developers change the behavior of the programming language to a certain degree.
+Metamethods are reserved functions with a set of special names in a metatable. These functions can be automatically triggered; hence they are called ``hooks''. Actually, all the computations during programming can be thought as hidden functions. One of the purposes of metamethods is to let developers change the behavior of the programming language to a certain degree.
 
 Furthermore, there are 4 different kinds of metamethods in Lua~\cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.
 
@@ -293,34 +273,36 @@ Figure \ref{fig:metatables} introduces the metamethods that play key roles in FW
 \label{fig:metatables}
 \[
 \begin{array}{rclcl}
-  {\tt \_\_index}(get) & :: & {table} ~\rightarrow ~ {string} ~\rightarrow ~ {value} \\
-  {\tt \_\_newindex}(set)   & :: &  {table} ~\rightarrow ~{string} ~\rightarrow ~{value} ~\rightarrow ~{\tt nil}\\
+{\tt \_\_index}(get) & :: & {table} ~\rightarrow ~ {string} ~\rightarrow ~ {value} \\
+{\tt \_\_newindex}(set) & :: & {table} ~\rightarrow ~{string} ~\rightarrow ~{value} ~\rightarrow ~{\tt nil}\\
 \end{array}
 \]
 
 {\bf Arithmetic Metamethods}
 \[
 \begin{array}{rclcl}
-  {\tt \_\_add(+)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
-  {\tt \_\_sub(-)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
-  {\tt \_\_mul(*)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
-  {\tt \_\_div(/)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
-  {\tt \_\_mod(mod)}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
-  {\tt \_\_pow({\wedge})}   & :: &  {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_add(+)} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_sub(-)} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_mul(*)} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_div(/)} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_mod(mod)} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
+{\tt \_\_pow({\wedge})} & :: & {value} ~\rightarrow ~{value}~\rightarrow ~{value}\\
 \end{array}
 \]
 
 {\bf Relational Metamethods}
 \[
 \begin{array}{rclcl}
-  {\tt \_\_eq(==)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
-  {\tt \_\_ne(\sim=)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
-  {\tt \_\_lt(<)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
-  {\tt \_\_le(<=)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
-  {\tt \_\_gt(>)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
-  {\tt \_\_ge(>=)}   & :: &  {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+{\tt \_\_eq(==)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
+{\tt \_\_ne(\sim=)} & :: & {value} ~\rightarrow ~ {value} ~\rightarrow ~ {value}\\
+{\tt \_\_lt(<)} & :: & {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+{\tt \_\_le(<=)} & :: & {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+{\tt \_\_gt(>)} & :: & {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
+{\tt \_\_ge(>=)} & :: & {value} ~\rightarrow ~{value} ~\rightarrow ~{value}\\
 \end{array}
 \]
 \end{figure}
 
 \newcommand{\aFunction}[2]{\lambda{#1}.{#2}}
+
+

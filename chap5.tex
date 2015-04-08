@@ -2,7 +2,7 @@
 \newcommand{\definefunc}[2]{{#1} & \xlongequal[]{} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
 \newcommand{\desugarline}[1]{ & & {\begin{array}{@{}l@{}} #1 \end{array}}\\}
 \newcommand{\translate}[2]{\llbracket {#1} \rrbracket & \xlongequal[]{} & {\begin{array}{@{}l@{}} #2 \end{array}}\\}
-\newcommand{\translateline}[1]{ &  & {\begin{array}{@{}l@{}} #1 \end{array}}\\}
+\newcommand{\translateline}[1]{ & & {\begin{array}{@{}l@{}} #1 \end{array}}\\}
 
 \chapter{Lua to Featherweight Lua}
 \label{chp:luaTranslation}
@@ -14,7 +14,7 @@ In this chapter, we discuss how FWLua works like Lua by showing how syntactic de
 There are several important parts we focus on in desugaring Lua. First of all, getting variables is taken into consideration. Secondly, Lua allows many different ways of representing variable updates and declarations in different conditions and scopes. We also consider functions because there are some different qualities for functions in the full Lua language. Tables, in addition, need to be discussed since they are the primary data structure with metamethods and metatables. Finally, we discuss how we may desugar control statements. 
 
 %--------MODIFIED
-Finally, we will discuss those parts in detail, along with examples, in the following sections. All the figures about desugaring below are not translated into FWLua completely, but can be finally translated by following the all the figures. The only reason doing this is to make the the translation rules clearer to understand.
+Finally, we will discuss those parts in detail, along with examples, in the following sections. All the figures about desugaring below are not translated into FWLua completely, but can be finally translated by following the all the figures. The only reason doing this is to make the translation rules clearer to understand.
 %--------END
 
 
@@ -31,7 +31,7 @@ t.y ---value of key "y" in table t
 Every variable in Lua has its own field. 
 The first line of the example has no associated table.
 To normalize it, we need to give a table name to that variable to make it clear.
-Lua provides a reserved table, {\tt \_ENV} to represent the global enviroment. Therefore, every variable now can have a table.
+Lua provides a reserved table, {\tt \_ENV} to represent the global environment. Therefore, every variable now can have a table.
 
 The normal format, in Lua, is {\tt e["e"]}. 
 The expression {\tt t.y} is syntactic sugar with key {\tt y} since the key is the string type in the table. After we desugar these expressions, all variable select expressions in Lua can be represented as the format {\tt e[e]}, such as the following:
@@ -60,23 +60,23 @@ Direct table select in Lua is treated as a syntactic sugar, and we desugar it to
 Multiple variable declarations can be represented using a set of single assignment statements. 
 The local variable declaration is more complicated. Lua actually finds out which scope, or which table, should the variable be set in a fixed order. 
 
-Local variable is a very interesting point in setting variable. Actually, local variable, as its name, is a key-value pair that only can be accessed in the local or inner scope. There is a need to allocate a table for recording every local variable in a specific scope. What is more, there are only 2 places allowed for setting a local variable using reserved word ``{\tt local}'' in Lua: blocks and functions,  while we can easily translate a block into a set of lambda functions. As the result, we can handle the local variable in translating functions in Lua and thus will mainly discuss it in Section~\ref{sec:TraFunc}. 
+Local variable is a very interesting point in setting variable. Actually, local variable, as its name, is a key-value pair that only can be accessed in the local or inner scope. There is a need to allocate a table for recording every local variable in a specific scope. What is more, there are only 2 places allowed for setting a local variable using reserved word ``{\tt local}'' in Lua: blocks and functions, while we can easily translate a block into a set of lambda functions. As the result, we can handle the local variable in translating functions in Lua and thus will mainly discuss it in Section~\ref{sec:TraFunc}. 
 
 There is also a reserved function in Lua, rawset, to get rid of effects of metatables in setting variables, which is {\tt rawset(t, k, v)}. This is the reason we build our syntax in FWLua using this format, and will then desugar Lua to FWLua, followed by telling mechanisms in Lua.
 An example of decoding assignments in Lua to FWLua is shown below.
 
 \begin{verbatim}
-t.x = 12  -- Lua, in the table of t
+t.x = 12 -- Lua, in the table of t
 rawset(rawget(_ENV, "t"), "x", 12) --translated in FWLua
 \end{verbatim}
 
 %--------MODIFIED
-Figure~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua. We can also call this step ``Normalizing'' since this is the first step of handling variables in tables for the translation.The main purpose is to remove all syntactic sugars in dealing with variables. Next, we will talk about translating tables and metatables based on this section.
+Figure~\ref{fig:desLuaVar} shows how we desugar syntax about variables in Lua, using FWLua. We can also call this step ``Normalizing'' since this is the first step of handling variables in tables for the translation. The main purpose is to remove all syntactic sugars in dealing with variables. Next, we will talk about translating tables and metatables based on this section.
 %--------END
 
 \section{Tables and Metatables}\label{sec:TranslateTabls}
 Based on the full version of Lua, table constructors are used as expressions to assign a set of pairs with key and value in the specific table. Instead of it, there is only one syntax in FWLua called ``new allocation'' to allocate and then be evaluated as a new address in the store. 
-However, the syntax {\tt rawset(t,s,v)} in FWLua will also be evaluated as an address, just as this function does in Lua.  We thus can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
+However, the syntax {\tt rawset(t, s, v)} in FWLua will also be evaluated as an address, just as this function does in Lua. We thus can assign pairs with values and keys, or changing behaviors using some kinds of expressions about this table. In other words, we will completely decompose the whole syntax of ``table constructor'' in to a set of single expressions in FWLua. 
 
 %--------MODIFIED
 To make it more concrete, we will show several examples about variable handling of table in Lua. First, consider the following example code:
@@ -93,7 +93,7 @@ rawset(rawget(_ENV, "table"), "x", 1)
 rawset(rawget(_ENV, "table"), "y", 2)
 \end{verbatim}
 
-Or, because rawset in FWLua can also return that address, we can use a sequence of rawset expression, like a recursive funtion calls:
+Or, because rawset in FWLua can also return that address, we can use a sequence of rawset expression, like a recursive function application:
 
 \begin{verbatim}
 rawset(rawset(rawset(_ENV, "table", {}) , "x", 1), "y", 2)
@@ -120,18 +120,18 @@ rawget(rawget(_ENV, "t"), "_metatable")
 
 What is more, we have mentioned the reserved metamethods about binary operations for table. To finish binary operations for table in FWLua, we can easily get the reserved functions in the table {\tt \_metatable} and then apply it with the two arguments in an binary operation.
 
-Finally, getting and setting an variable in table is a key point. As we mentioned, some metamethod, like {\tt \_\_index} or {\tt \_\_newindex}, will automatically be triggered when we are missing the key in getting or setting variables. Therefore, in Lua, getting or setting variables in Table is actually a set of algorithms, which will look for the fallback table whent there is no matched key-value pairs in current table.
+Finally, getting and setting an variable in table is a key point. As we mentioned, some metamethod, like {\tt \_\_index} or {\tt \_\_newindex}, will automatically be triggered when we are missing the key in getting or setting variables. Therefore, in Lua, getting or setting variables in Table is actually a set of algorithms, which will look for the fallback table when there is no matched key-value pairs in current table.
 
 %--------END
 
 Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table constructors. It is noteworthy that, rawset expressions in both Lua and FWLua return an address, while an assignment statement in Lua returns nothing.
 
 \begin{figure}
-\caption{Desugaring Lua Variables}\label{fig:desLuaVar}
+\caption{Translation rules of Variables and Tables}\label{fig:desLuaVar}\label{fig:desLuaTable}
 {\bf Variable Select:}\[
 \begin{array}{rclcl}
 
-\desugar{e_1.e_2}{e_1[e_2]}
+%\desugar{e_1.e_2}{e_1[e_2]}
 \desugar{e.x}{e[``x"]}
 
 \end{array}\]
@@ -143,7 +143,7 @@ Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table co
 \desugar{\overline{e_i}=\overline{e_j}}{\overline{e_i = e_j;}}
 \end{array}\]
 
-\caption{Desugaring Lua Table}\label{fig:desLuaTable}
+
 {\bf Table:}\[
 \begin{array}{rclcl}
 \desugar{T.t = \{\overline{e_i = v_j}\}}{{\tt rawset}(...{\tt rawset}({\tt rawset}(T,``t", \{\}), e_1, v_1)...)}
@@ -152,39 +152,39 @@ Figure~\ref{fig:desLuaTable} show how to translate Lua into FWLua about table co
 \desugar{t_1~{\it op}~t_2}{(({\tt rawget}({\tt rawget}(a,``\_metatable"),~{\it op}))(t_1))(t_2)}
 \desugar{e_1[e_2]}{\lambda e_1.\lambda e_2.}
 \desugarline{ 
-     \quad{\tt if}~ {\tt rawget}(e_1, e_2) ~\sim= {\tt nil} ~ {\tt then}\\
-     \quad\quad{\tt rawget}(e_1, e_2) ~\\
-     \quad{\tt else}\\
-     \quad\quad{\tt local}~f = \\
-     \quad\quad\quad {\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}index});\\
-     \quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad {\tt nil} \\
-     \quad\quad{\tt else}\\
-     \quad\quad\quad f(e_1,e_2)\\ 
-     \quad\quad{\tt end}\\
-     \quad{\tt end}\\
-     }
-\desugar{e_1[e_2]=e_3}{
-    \lambda e_1.\lambda e_2.\lambda e_3.
+\quad{\tt if}~ {\tt rawget}(e_1, e_2) ~\sim= {\tt nil} ~ {\tt then}\\
+\quad\quad{\tt rawget}(e_1, e_2) ~\\
+\quad{\tt else}\\
+\quad\quad{\tt local}~f = \\
+\quad\quad\quad {\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}index});\\
+\quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\
+\quad\quad\quad {\tt nil} \\
+\quad\quad{\tt else}\\
+\quad\quad\quad f(e_1,e_2)\\ 
+\quad\quad{\tt end}\\
+\quad{\tt end}\\
 }
-\desugarline{  
-     \quad{\tt if}~  {\tt rawget}(e_1, e_2) ~== {\tt nil} ~ {\tt then}\\
-     \quad\quad{\tt rawset}(e_1, e_2,e_3) ~\\
-     \quad{\tt else}\\
-     \quad\quad{\tt local}~f = \\
-     \quad\quad\quad{\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}newindex});\\
-     \quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad {\tt nil} \\
-     \quad\quad{\tt else}\\
-     \quad\quad\quad f(e_1,e_2,e_3)\\ 
-     \quad\quad{\tt end}\\
-     \quad{\tt end}\\
+\desugar{e_1[e_2]=e_3}{
+\lambda e_1.\lambda e_2.\lambda e_3.
+}
+\desugarline{ 
+\quad{\tt if}~ {\tt rawget}(e_1, e_2) ~== {\tt nil} ~ {\tt then}\\
+\quad\quad{\tt rawset}(e_1, e_2,e_3) ~\\
+\quad{\tt else}\\
+\quad\quad{\tt local}~f = \\
+\quad\quad\quad{\tt rawget}({\tt getmetatable}(e_1),~{\tt{\_}{\_}newindex});\\
+\quad\quad{\tt if}~ f == {\tt nil} ~ {\tt then}\\
+\quad\quad\quad {\tt nil} \\
+\quad\quad{\tt else}\\
+\quad\quad\quad f(e_1,e_2,e_3)\\ 
+\quad\quad{\tt end}\\
+\quad{\tt end}\\
 }
 \end{array}\]
 \end{figure}
 
 \section{Functions and control structures}\label{sec:TraFunc}
-Before desugaring functions in Lua, we first introduce those differences between functions in Lua and in FWLua. Since functions in FWLua are similar to lambda calculus, there is an obvious difference, which is that each function in FWLua always take exactly one argument as its perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, consider a simple Lua function:
+Before desugaring functions in Lua, we first introduce those differences between functions in Lua and in FWLua. Since functions in FWLua are similar to lambda calculus, there is an obvious difference, which is that each function in FWLua always takes exactly one argument as its perimeter. Therefore, we are going to make every function in Lua as the style of multiple functions in FWLua, or in lambda calculus. For instance, consider a simple Lua function:
 
 \begin{verbatim}
 function (x,y) return e end
@@ -205,13 +205,12 @@ Furthermore, a function in Lua might have its own scope and supports local varia
 Since we don't provide local variables to functions in FWLua, we now treat the local scope as a temporary table.
 Now, we discuss details about functions in Lua.
 
-To capture other additional information about Lua functions,
-we translate every function in Lua to a table with fields for basic information about the function. To implement the scope, there are four arguments that must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} for variables in the local enviroment; {\tt \_arg} for storing the arguments of the function; {\tt \_outer} for the  outer scope; and {\tt \_call} is a function to store the body of the function. There is an example in Appendix~\ref{app:function}.
+To capture other additional information about Lua functions, we translate every function in Lua to a table with fields for basic information about the function. To implement the scope, there are four arguments that must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} for variables in the local environment; {\tt \_arg} for storing the arguments of the function; {\tt \_outer} for the outer scope; and {\tt \_call} is a function to store the body of the function. There is an example in Appendix~\ref{app:function}.
 
 %------KEY------
-In the structure, we only bring 2 new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function applicaion. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recursive function applicaion.
+In the structure, we only bring 2 new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function application. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recursive function application.
 
-Finally, one of the key point in the function application is to distiguish the scope of the current variable, for example:
+Finally, one of the key points in the function application is to distinguish the scope of the current variable, for example:
 
 \begin{verbatim}
 x = 40
@@ -222,7 +221,7 @@ function (x) return
 end
 \end{verbatim}
 
-Based on our test, when get a variable in a funciton without any prefix. There is a fixed order in locating the scope of this variable. This order is exactly like the following algorithm, and it will stop going when there is match key-value pairs:
+Based on our test, when get a variable in a function without any prefix. There is a fixed order in locating the scope of this variable. This order is exactly like the following algorithm, and it will stop going when there is match key-value pairs:
 
 \begin{verbatim}
 1. Check local scope
@@ -250,76 +249,70 @@ Therefore, local variables in global environment can be declared, but can never 
 {\bf Reserved Functions:}\[
 \begin{array}{rclcl}
 \definefunc{{\tt getValue}}{\lambda\_local. \lambda\_var.}
-\desugarline{  
-     \quad(\lambda\_outer. \lambda\_arg.\\
-     \quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad {\tt rawget}(\_local, \_var) ~\\
-     \quad\quad{\tt else}~\\
-     \quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad\quad {\tt rawget}(\_arg, \_var)  ~\\
-     \quad\quad\quad{\tt else}~\\
-     \quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
-     \quad\quad\quad\quad\quad{\tt nil}\\
-     \quad\quad\quad\quad{\tt else}\\
-     \quad\quad\quad\quad\quad{\tt getValue}(\_outer, \_var)  ~\\
-     \quad\quad\quad\quad {\tt end}\\
-     \quad\quad\quad {\tt end}\\
-     \quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
+\desugarline{ 
+\quad(\lambda\_outer. \lambda\_arg.\\
+\quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
+\quad\quad\quad {\tt rawget}(\_local, \_var) ~\\
+\quad\quad{\tt else}~\\
+\quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
+\quad\quad\quad\quad {\tt rawget}(\_arg, \_var) ~\\
+\quad\quad\quad{\tt else}~\\
+\quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
+\quad\quad\quad\quad\quad{\tt nil}\\
+\quad\quad\quad\quad{\tt else}\\
+\quad\quad\quad\quad\quad{\tt getValue}(\_outer, \_var) ~\\
+\quad\quad\quad\quad {\tt end}\\
+\quad\quad\quad {\tt end}\\
+\quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
 }
 \\
 \definefunc{{\tt setValue}}{\lambda\_local. \lambda\_var.\lambda\_value}
-\desugarline{  
-     \quad(\lambda\_outer. \lambda\_arg.\\
-     \quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad {\tt rawset}(\_local, \_var, \_value) ~\\
-     \quad\quad{\tt else}~\\
-     \quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
-     \quad\quad\quad\quad {\tt rawset}(\_arg, \_var, \_value) ~\\
-     \quad\quad\quad{\tt else}~\\
-     \quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
-     \quad\quad\quad\quad\quad{\tt nil}\\
-     \quad\quad\quad\quad{\tt else}\\
-     \quad\quad\quad\quad\quad{\tt setValue}(\_outer, \_var, \_value)  ~\\
-     \quad\quad\quad\quad {\tt end}\\
-     \quad\quad\quad {\tt end}\\
-     \quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
+\desugarline{ 
+\quad(\lambda\_outer. \lambda\_arg.\\
+\quad\quad{\tt if}~ {\tt rawget}(\_local, \_var) \sim= {\tt nil} ~ {\tt then}\\
+\quad\quad\quad {\tt rawset}(\_local, \_var, \_value) ~\\
+\quad\quad{\tt else}~\\
+\quad\quad\quad{\tt if}~ {\tt rawget}(\_arg, \_var) \sim= {\tt nil} ~ {\tt then}\\
+\quad\quad\quad\quad {\tt rawset}(\_arg, \_var, \_value) ~\\
+\quad\quad\quad{\tt else}~\\
+\quad\quad\quad\quad{\tt if}~ \_outer == {\tt \_ENV} ~ {\tt then~ nil}\\
+\quad\quad\quad\quad\quad{\tt nil}\\
+\quad\quad\quad\quad{\tt else}\\
+\quad\quad\quad\quad\quad{\tt setValue}(\_outer, \_var, \_value) ~\\
+\quad\quad\quad\quad {\tt end}\\
+\quad\quad\quad {\tt end}\\
+\quad\quad {\tt end})(\_local.\_outer, \_local.\_arg)\\
 }
 \end{array}\]
 \end{figure}
 
 %------KEY------
 
-Lambda function applications can be used to represent a sequence of  statements. We therefore translate sequences of statements into functions in FWLua. Lambda functions can also be used to represent control structures and boolean values, which we discuss in the next section.
+Lambda function applications can be used to represent a sequence of statements. We therefore translate sequences of statements into functions in FWLua. Lambda functions can also be used to represent control structures and boolean values, which we discuss in the next section.
 
 Figure~\ref{fig:desLuaFunc} gives the rules for translating functions. As above, the results of the translations are all in FWLua syntax, or in other constructs that we define.
 
 \subsection{Control structures}
 Control structures can be defined in terms of a set of lambda functions. 
-Following the standard pattern used in the lambda calculus,
-we can treat the constant {\tt true} as a function taking 2 parameters\footnote{
-  More strictly speaking, {\tt true} is a function that takes one parameter
-  and returns another function that takes one parameter and returns
-  the argument passed to the outer function.
-}
-and returning the first value, and treat {\tt false} as a function taking 2 parameters and returning the second value. The syntax is as follows:
+Following the standard pattern used in the lambda calculus, we can treat the constant {\tt true} as a function taking 2 parameters\footnote{More strictly speaking, {\tt true} is a function that takes one parameter and returns another function that takes one parameter and returns the argument passed to the outer function.} and returning the first value, and treat {\tt false} as a function taking 2 parameters and returning the second value. The syntax is as follows:
 
 \begin{verbatim}
 function (x) return 
   function (y) return 
     x
   end
-end  --True
+end --True
 
 function (x) return 
   function (y) return 
     y
   end
-end  --False
+end --False
 \end{verbatim}
 
 Using these constructs for true and false, we now can translate the basic control structure in Lua, the {\tt if} statement, into a complicated reserved lambda function in FWLua. Pierce~\cite{TAPL} shows us the details about translating control structure statements into lambda functions.
 
-According to our analysis, all forms of loop statements in Lua can be represented by using a set of conditional statements and recursive function calls. For example:
+According to our analysis, using a set of conditional statements and recursive function calls can represent all forms of loop statements in Lua. For example:
 
 \begin{verbatim}
 x = 0;
@@ -335,23 +328,22 @@ function while()
   else
     return nil
   end
-end;
-while()
+end; while()
 \end{verbatim}
 
 Hence all different kind of loop statements can be desugared using conditional statements. Figure~\ref{fig:desLuaFunc} gives other desugaring rules.
 
 \begin{figure}
-\caption{Desugaring Lua Functions}\label{fig:desLuaFunc}
+\caption{Translation Rules of Lua's Functions}\label{fig:desLuaFunc}
 {\bf Function:}\[
 \begin{array}{rclcl}
-\desugar{e_1{\tt ;}~e_2}{(\aFunction{d}{e_2})(e_1)}
+\desugar{e_1{\tt ;}~e_2}{(\aFunction{d}{e_2})(e_1)~where~{\it d} \notin e_2}
 \desugar{{\tt function}~f(\overline{x_i})~e~{\tt end}}{f = \{ {\tt ``\_arg"} = \{\}, {\tt ``\_call"} = \lambda\_arg.}
 \desugarline{
-  \quad(\lambda\_outer.\lambda\_local.e)(\\
-  \quad\{{\tt ``\_outer"} = \_outer, {\tt ``\_arg" }= \_arg\},\\
-  \quad\quad~\_local'\\
-  \quad)\\
+\quad(\lambda\_outer.\lambda\_local.e)(\\
+\quad\{{\tt ``\_outer"} = \_outer, {\tt ``\_arg" }= \_arg\},\\
+\quad\quad~\_local'\\
+\quad)\\
 \}
 }
 \desugar{f(\overline{v_i})}{(f.\_call)(\{\overline{x_i = v_i}\})}
@@ -369,26 +361,28 @@ Hence all different kind of loop statements can be desugared using conditional s
 \desugar{\tt True}{\aFunction{x}{\aFunction{y}{x}}}
 \desugar{\tt False}{\aFunction{x}{\aFunction{y}{y}}}
 \desugar{
-    {\tt if}~e_1~{\tt then}~e_2~{\tt else}~e_3~{\tt end}
+{\tt if}~e_1~{\tt then}~e_2~{\tt else}~e_3~{\tt end}
 }{
-    (((e_1)(\aFunction{d}{e_2}))(\aFunction{d}{e_3}))(\aFunction{x}{x})
+(((e_1)(\aFunction{d}{e_2}))(\aFunction{d}{e_3}))(\aFunction{x}{x})~where~{\it d} \notin e_2, e_3
 }
 \desugar{{\tt while}~e_1~{\tt do}~e_2~{\tt end}}{
-    {\tt function}~f()
+{\tt function}~f()
 }
 \desugarline{ \quad{\tt if}~e_1~{\tt then}~e_2;f()~{\tt else}~{\tt return}~{\tt nil}~{\tt end}\\
 {\tt end};f()
 }
 \desugar{{\tt repeat}~e_1~{\tt until}~e_2}{
-   {\tt while}~{\tt not}~e_2~{\tt do}~e_1~{\tt end}\\
+{\tt while}~{\tt not}~e_2~{\tt do}~e_1~{\tt end}\\
 }
 \desugar{{\tt for}~x=e_1~{\tt ,}~e_2~{\tt ,}~e_3~{\tt do}~e_4~{\tt end}}{
-    {\tt function}~f()
+{\tt function}~f()
 }
 \desugarline{
-    \quad {\tt local}~x = e_1;\\
-    \quad {\tt while}~x<= e_2~{\tt do}~x = x + e_3;~e_4~{\tt end}\\
-    {\tt end};f()\\
+\quad {\tt local}~x = e_1;\\
+\quad {\tt while}~x<= e_2~{\tt do}~x = x + e_3;~e_4~{\tt end}\\
+{\tt end};f()\\
 }
 \end{array}\]
 \end{figure}
+
+

@@ -9,30 +9,23 @@
 We introduce the syntax for the full version of Lua in this chapter. As mentioned previously, Lua is an extension programming language, and therefore its syntax is relatively simple. However, there are still several parts which can cause confusion in Lua.
 
 \section{Syntax in Lua}
-Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure. Every program of Lua can be thought as a block. A block is a list of statements, which are execued sequentially. Return statements can only be used in the end of a block, although they are optional.
+Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure. Every program of Lua can be thought as a block. A block is a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
 
 %--------MODIFIED
 Next, we will discuss two important elements in Lua separately, which are expressions and statements.
 Lua splits statements and expressions.
-They are separated, but still partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of a statement and cannot stand alone in a program. However, note that function application is considered both statements and expressions.
+They are separated, but still partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of statements and cannot stand alone in a program. However, note that function application is considered both statements and expressions.
 
 Figure~\ref{fig:LuaExp} shows the complete list of Lua expressions, and Figure~\ref{fig:LuaStat} shows the available statements for Lua. We give a brief introduction about the important parts of Lua in the next section. Those parts include expressions, statements, functions, tables, and metatables. We will talk about how the full version of Lua may be desugared to our core language in Chapter~\ref{chp:luaTranslation}.
 %--------END
 
 \section{Expressions}
-As we mentioned above, expressions cannot be used individually. However, it still plays a key role in Lua since there are many evaluation rules for expressions. An expression evaluates to a value. We consider this as the main difference to statements,
-which might not produce a value.
+As we mentioned above, expressions cannot be used individually. However, it still plays a key role in Lua since there are many evaluation rules for expressions. An expression evaluates to a value. We consider this as the main difference to statements, which might not produce a value.
 
 Figure \ref{fig:LuaExp} shows the expressions for Lua.
 Values present some constant value like booleans or integers.
 Prefix expressions include variables, function calls, and parenthesized expressions.
-Since tables are the central data structure in Lua,
-getting variables from tables is an important aspect of the language.
-In Lua, variables can either be names ({\tt x}), direct table selects ({\tt e.x}), or computed table selects ({\tt e[e]})\footnote{
-Note that direct table selects are syntactic sugar for computed table selects.
-}.
-Lua supports the usual mathematical binary and unary operators.
-Finally, Lua includes blocks in function definitions, which are sequences of statements. However, we will give the specific difinition of blocks in Figure \ref{fig:LuaStat}, since they look more related to statements.
+Since tables are the central data structure in Lua, getting variables from tables is an important aspect of the language. In Lua, variables can either be names ({\tt x}), direct table selects ({\tt e.x}), or computed table selects ({\tt e[e]})\footnote{Note that direct table selects are syntactic sugar for computed table selects.}. Lua supports the usual mathematical binary and unary operators. Finally, Lua includes blocks in function definitions, which are sequences of statements. However, we will give the specific definition of blocks in Figure \ref{fig:LuaStat}, since they look more related to statements.
 
 
 
@@ -42,39 +35,38 @@ Finally, Lua includes blocks in function definitions, which are sequences of sta
 \label{fig:LuaExp}
 \[
 \begin{array}{llr}
-  \mydefhead{e,f ::=\qquad\qquad\qquad\qquad}{Expressions}
-  \mydefcase{\tt nil}{nil}
-  \mydefcase{v}{value}
-  \mydefcase{p}{prefix expression}
-  \mydefcase{\tt ...}{vararg expression}
-  \mydefcase{\functiondef e {block}}{lambda function definition}
-  \mydefcase{\{\overline{[v_i] = e_i}\}}{table constructor}
-  \mydefcase{e ~binop~ e}{binary operation}
-  \mydefcase{unop~ e}{unary operation}
-  \\
-  \mydefhead{v ::=\qquad\qquad\qquad\qquad}{Values}
-  \mydefcase{n}{number}
-  \mydefcase{\tt true}{boolean true}
-  \mydefcase{\tt false}{boolean false}
-  \mydefcase{s}{string}
-  \\
-  \mydefhead{p ::=\qquad\qquad\qquad\qquad}{Prefix Expressions}
-  \mydefcase{x}{variable}
-  \mydefcase{f(\overline{e_i})}{function call}
-  \mydefcase{(e)}{prefix expression}
-  
-  \\
-  \mydefhead{x ::=\qquad\qquad\qquad\qquad}{Variables}
-  \mydefcase{n}{name}
-  \mydefcase{p[e]}{computed table select}
-  \mydefcase{p.s}{direct table select}
-  \\
-  binop ::= & + ~|~ - ~|~ * ~|~ / ~|~ \hat{} ~|~ \% ~|~ .. ~|~ > ~|~ >= ~|& \mbox{\emph{Binary operators}}\\
-  \quad & ~ < ~|~ <= ~|~ == ~|~ ~= ~|~ {\tt and} ~|~ {\tt or} &  \\
-  \\
-  unop ::= & - ~|~ {\tt not} ~|~ *  & \mbox{\emph{Unary operators}} \\
-  \\
-  \mydefhead{block \qquad\qquad\qquad\qquad}{Blocks}
+\mydefhead{e,f ::=\qquad\qquad\qquad\qquad}{Expressions}
+\mydefcase{\tt nil}{nil}
+\mydefcase{v}{value}
+\mydefcase{p}{prefix expression}
+\mydefcase{\tt ...}{vararg expression}
+\mydefcase{\functiondef e {block}}{lambda function definition}
+\mydefcase{\{\overline{[v_i] = e_i}\}}{table constructor}
+\mydefcase{e ~binop~ e}{binary operation}
+\mydefcase{unop~ e}{unary operation}
+\\
+\mydefhead{v ::=\qquad\qquad\qquad\qquad}{Values}
+\mydefcase{n}{number}
+\mydefcase{\tt true}{boolean true}
+\mydefcase{\tt false}{boolean false}
+\mydefcase{s}{string}
+\\
+\mydefhead{p ::=\qquad\qquad\qquad\qquad}{Prefix Expressions}
+\mydefcase{x}{variable}
+\mydefcase{f(\overline{e_i})}{function call}
+\mydefcase{(e)}{prefix expression}
+\\
+\mydefhead{x ::=\qquad\qquad\qquad\qquad}{Variables}
+\mydefcase{n}{name}
+\mydefcase{p[e]}{computed table select}
+\mydefcase{p.s}{direct table select}
+\\
+binop ::= & + ~|~ - ~|~ * ~|~ / ~|~ \hat{} ~|~ \% ~|~ .. ~|~ > ~|~ >= ~|& \mbox{\emph{Binary operators}}\\
+\quad & ~ < ~|~ <= ~|~ == ~|~ ~= ~|~ {\tt and} ~|~ {\tt or} & \\
+\\
+unop ::= & - ~|~ {\tt not} ~|~ * & \mbox{\emph{Unary operators}} \\
+\\
+\mydefhead{block \qquad\qquad\qquad\qquad}{Blocks}
 \end{array}
 \]
 \end{figure}
@@ -82,30 +74,22 @@ Finally, Lua includes blocks in function definitions, which are sequences of sta
 
 
 \section{Statements}
-Figure~\ref{fig:LuaStat} shows the syntax for statements in Lua. We can see many common types of statement that appear in lots of programming languages, such as assignment statements and function applications.
-One unusual aspect of Lua is that only statements may stand alone in a Lua program.
+Figure~\ref{fig:LuaStat} shows the syntax for statements in Lua. We can see many common types of statement that appear in lots of programming languages, such as assignment statements and function applications. One unusual aspect of Lua is that only statements may stand alone in a Lua program.
 Therefore, all functions are considered to be both statements and expressions.
 
-There are 3 parts in the syntax of statements. They are statements, blocks, and functions. 
-In the following, we will mainly discuss and introduce these syntax.
+There are 3 parts in the syntax of statements. They are statements, blocks, and functions. In the following, we will mainly introduce them.
 
 Assignment statements are used to assign a value to a specific variable in the global store.
 However, this syntax in Lua works a little differently than in other languages.
 First of all, it is not possible to chain assignments, so that {\tt x = y = 3} is a syntax error.
-%--------MODEFIED
 However, Lua allows users to assign multiple values to multiple variables with only one statement by using expression lists on both side of `='. 
 This looks like what we called ``Destructuring Assignment'' in JavaScript \cite{DA}. 
-Section~\ref{sec:desugarVarUpdate} rises an example showing this. It is very convenient and interesting. 
-However, it is not that indispensable. Therefore we remove multiple expressions and find a way to desugar them in Chapter~\ref{chp:luaTranslation}.
-%--------END
+Section~\ref{sec:desugarVarUpdate} rises an example showing this. It is very convenient and interesting, but is not that indispensable. Therefore we decide to remove it in FWLua, regard it as a syntactic sugar, and find a way to translate them.
 
-In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages.
-In Lua, users have 3 different ways to implement and control a loop which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Lua's {\tt for} statement has a different but efficient syntax comparing to other common {\tt for} statements. We will talk about it in the Section~\ref{sec:TraFunc}.
+In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages. In Lua, users have 3 different ways to implement and control a loop, which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Lua's {\tt for} statement has a different but efficient syntax comparing to other common {\tt for} statements. We will talk about it in the Section~\ref{sec:TraFunc}.
 Since loops and conditional statement are both straightforward, we will not discuss them further.
 
-As we mentioned, blocks are a sequence of statements,
-which may optionally include a return statement as the last statement in the block.
-Therfore, the return statement will be illegal outside of blocks, or before the last statement in a block,
+As we mentioned, blocks are a sequence of statements, which may optionally include a return statement as the last statement in the block. Therefore, the return statement will be illegal outside of blocks, or before the last statement in a block,
 
 % Commands for language format
 \newcommand{\assign}[2]{{\overline{#1_i}}~{=}~{\overline{#2_j}}}
@@ -122,31 +106,31 @@ Therfore, the return statement will be illegal outside of blocks, or before the 
 \label{fig:LuaStat}
 \[
 \begin{array}{llr}
-  \mydefhead{s ::=\qquad\qquad\qquad\qquad}{Statements}
-  \mydefcase{;}{empty statement}
-  \mydefcase{\assign x e}{assignment statement}
-  \mydefcase{\local n e}{local assignment statement}
-  \mydefcase{\function f n b}{function definition}
-  \mydefcase{f(\overline{e_i})}{function call}
-  \mydefcase{::~n~::}{label}
-  \mydefcase{\tt break}{break}
-  \mydefcase{{\tt goto} ~n}{goto}
-  \mydefcase{\doe b}{do}
-  \mydefcase{\ife e b b}{if statement}
-  \mydefcase{\whilee e b}{while statement}
-  \mydefcase{\repeate e b}{repeat statement}
-  \mydefcase{\for n e b}{for statement}
-  \\
-  \mydefhead{b ::=\qquad\qquad\qquad\qquad}{Blocks}
-  \mydefcase{\overline{s_i}~{\tt return}~\overline{e_i}}{block statements}
-  \\
-  \mydefhead{f ::=\qquad\qquad\qquad\qquad}{Function Names}
-  \mydefcase{n}{name}
-  \mydefcase{n.f}{name2}
-  \mydefcase{f:n}{name3}
-  \mydefhead{n \qquad\qquad\qquad\qquad}{Names}
-  \mydefhead{e \qquad\qquad\qquad\qquad}{Expressions}
-  \mydefhead{x \qquad\qquad\qquad\qquad}{Variables}
+\mydefhead{s ::=\qquad\qquad\qquad\qquad}{Statements}
+\mydefcase{;}{empty statement}
+\mydefcase{\assign x e}{assignment statement}
+\mydefcase{\local n e}{local assignment statement}
+\mydefcase{\function f n b}{function definition}
+\mydefcase{f(\overline{e_i})}{function call}
+\mydefcase{::~n~::}{label}
+\mydefcase{\tt break}{break}
+\mydefcase{{\tt goto} ~n}{goto}
+\mydefcase{\doe b}{do}
+\mydefcase{\ife e b b}{if statement}
+\mydefcase{\whilee e b}{while statement}
+\mydefcase{\repeate e b}{repeat statement}
+\mydefcase{\for n e b}{for statement}
+\\
+\mydefhead{b ::=\qquad\qquad\qquad\qquad}{Blocks}
+\mydefcase{\overline{s_i}~{\tt return}~\overline{e_i}}{block statements}
+\\
+\mydefhead{f ::=\qquad\qquad\qquad\qquad}{Function Names}
+\mydefcase{n}{name}
+\mydefcase{n.f}{name2}
+\mydefcase{f:n}{name3}
+\mydefhead{n \qquad\qquad\qquad\qquad}{Names}
+\mydefhead{e \qquad\qquad\qquad\qquad}{Expressions}
+\mydefhead{x \qquad\qquad\qquad\qquad}{Variables}
 \end{array}
 \]
 \end{figure}
@@ -159,14 +143,12 @@ Based on the research \cite{PIL}, we believe that there are at least two main pu
 
 Lua provides anonymous functions, which means that a function definition expression will return itself as the result. Basically, a function in this case is an expression that evaluates to a closure.
 
-One important aspect of functions in Lua is that they are first-class values,
-meaning that it is possible to support functional programming paradigms.
-We see this behavior of Lua as one of its core characteristics.
+One important aspect of functions in Lua is that they are first-class values, meaning that it is possible to support functional programming paradigms. We see this behavior of Lua as one of its core characteristics.
 
 \section{Metatables and Metamethods}
 Metatables are one of the more unusual features in Lua. The functions in metatables are called ``metamethods''. Metamethods are automatically called when the specific condition is satisfied. They are usually called ``hooks'' in many programming languages. The primary goal of metatables is to control the basic behavior of tables. For instance, if we want to find a value with a key that does not exist in the table, the {\tt \_\_index} metamethod in the metatable of this table will automatically execute instead of reporting a crash.
 
-There are only a few default functions in the metatable. They include hooks for behavior controlling(also called {\tt Fallbacks} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by the programmer. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
+There are only a few default functions in the metatable. They include hooks for behavior controlling (also called {\tt Fallbacks} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by programmers. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
 
 Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua. Meanwhile, more rules about metatables can be found in the Lua Reference Manual \cite{LRM}.
 
@@ -188,14 +170,14 @@ And this statement can be translated into a set of expressions; we will talk abo
 
 Tables in Lua are the primary data structure. Almost every type of data structure can be represented with tables in Lua in an efficient way, such as arrays, records or sets. One interesting thing is that arrays and lists are usually used as the basic data structure in other languages. We can easily implement these structures using Lua tables. However, we don't take this as necessary since tables are much more powerful than them.
 
-In this section, we illustrate several examples showing how to implement other data structure with tables and metatables. These examples will also make both tables and metatables easier to be comprehend.
+In this section, we illustrate several examples showing how to implement other data structure with tables and metatables. These examples will also make both tables and metatables easier to be comprehended.
 
 The first instance we want to show is about arrays. We know that an array is made up of a set of values and keys, where keys are index numbers. Therefore, giving an array using a table is not an issue, as we show in the following code:
 
 \begin{verbatim}
 array = {}
-  for i=1, 100 do
-  array[i] = 0
+for i=1, 100 do
+array[i] = 0
 end
 \end{verbatim}
 
@@ -203,10 +185,9 @@ In this program, the array would return the value of {\tt Nil} instead of {\tt 0
 
 Objects are very important data structures in object-oriented programming languages. Lua does not provide objects by default, but it is easy to build them in Lua using a combination of tables and metatables.
 
-Before we write the example, we first introduce some basic qualities about objects. According to Jung and Brown~\cite{begLua}, objects and tables have a lot of similar qualities. Tables have a state, an identity that is independent of their values, and also have a specific life cycle when being created. All of these are behaviours shared with objects.
+Before we write the example, we first introduce some basic qualities about objects. According to Jung and Brown~\cite{begLua}, objects and tables have a lot of similar qualities. Tables have a state, an identity that is independent of their values, and also have a specific life cycle when being created. All of these are behaviors shared with objects.
 
-However, objects also have some unique qualities that make them different from tables such as inheritance and privacy. These qualities are the key that we will focus on.
-To properly implement these features, we rely on metatables to change the behavior of tables to act like objects.
+However, objects also have some unique qualities that make them different from tables such as inheritance. To properly implement this, we rely on metatables to change the behavior of tables to act like objects.
 
 We create a table with the table constructor in the following code:
 
@@ -223,3 +204,5 @@ print(child.lastName)
 \end{verbatim}
 
 In the code, the method {\tt setmetatble(t, mt)} sets the table {\tt mt} to {\tt t} as its metatable. In the table {\tt mt}, the method {\tt \_\_index} tells the child table to index the specific table when the key is missing. Hence, we now deliver basic inheritance for our objects. In this program, the result would be the value {\tt Lin} since the key {\tt lastName} is available in the parent object.
+
+
