@@ -86,7 +86,7 @@ However, Lua allows users to assign multiple values to multiple variables with o
 This looks like what we called ``Destructuring Assignment'' in JavaScript \cite{DA}. 
 Section~\ref{sec:desugarVarUpdate} rises an example showing this. It is very convenient and interesting, but is not that indispensable. Therefore we decide to remove it in FWLua, regard it as a syntactic sugar, and find a way to translate them.
 
-In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages. In Lua, users have 3 different ways to implement and control a loop, which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Lua's {\tt for} statement has a different but efficient syntax comparing to other common {\tt for} statements. We will talk about it in the Section~\ref{sec:TraFunc}.
+In addition, Lua provides a bunch of statements for control flow. There is an {\tt if} statement in the syntax that works as in most languages. In Lua, users have 3 different ways to implement and control a loop, which are {\tt while} statements, {\tt for} statements and {\tt repeat} statements. Lua's {\tt for} statement has a different but efficient syntax comparing to other common programming languages. We will talk about it in the Section~\ref{sec:TraFunc}.
 Since loops and conditional statement are both straightforward, we will not discuss them further.
 
 As we mentioned, blocks are a sequence of statements, which may optionally include a return statement as the last statement in the block. Therefore, the return statement will be illegal outside of blocks, or before the last statement in a block,
@@ -139,21 +139,21 @@ As we mentioned, blocks are a sequence of statements, which may optionally inclu
 A function is made up of a set of statements and expressions in Lua. The reason we choose to further introduce functions is that they could be used as either expressions or statements.
 This section discusses those differences in more detail.
 
-Based on the research \cite{PIL}, we believe that there are at least two main purposes of using functions in programming languages: to produce some side effect, or to return a value after being computed. According to this, we can use a function application as a statement in the former case and regard it as an expression in the latter one. However, a given function application may serve both purposes, depending on the function's definition.
+Based on the research \cite{PIL}, we believe that there are at least two main purposes of using functions in programming languages: to produce some side effects, or to return a value after being computed. According to this, we can use a function application as a statement in the former case and regard it as an expression in the latter one. However, a given function application may serve both purposes, depending on the function's definition.
 
 Lua provides anonymous functions, which means that a function definition expression will return itself as the result. Basically, a function in this case is an expression that evaluates to a closure.
 
-One important aspect of functions in Lua is that they are first-class values, meaning that it is possible to support functional programming paradigms. We see this behavior of Lua as one of its core characteristics.
+One important aspect of functions in Lua is that they are first-class values, meaning that it is possible to support functional programming. We see this behavior of Lua as one of its core characteristics.
 
 \section{Metatables and Metamethods}
-Metatables are one of the more unusual features in Lua. The functions in metatables are called ``metamethods''. Metamethods are automatically called when the specific condition is satisfied. They are usually called ``hooks'' in many programming languages. The primary goal of metatables is to control the basic behavior of tables. For instance, if we want to find a value with a key that does not exist in the table, the {\tt \_\_index} metamethod in the metatable of this table will automatically execute instead of reporting a crash.
+Metatables are one of the most unusual features in Lua. The functions in metatables are called ``metamethods''. Metamethods are automatically called when the specific condition is satisfied. They are usually called ``hooks'' in many programming languages. The primary goal of metatables is to control the basic behavior of tables. For instance, if we want to find a value with a key that does not exist in the table, the {\tt \_\_index} metamethod in the metatable of this table will automatically execute instead of reporting a crash.
 
-There are only a few default functions in the metatable. They include hooks for behavior controlling (also called {\tt Fallbacks} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by programmers. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
+There are several default functions in the metatable. They include hooks for behavior controlling (also called {\tt Fallbacks} in the previous version of Lua), and functions for binary operations. In addition, these metamethods can be redefined by programmers. As a set of automatically executing functions, metatables can be very powerful and a nice convenience for Lua programmers.
 
-Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables play a key role in the language design of Lua. Meanwhile, more rules about metatables can be found in the Lua Reference Manual \cite{LRM}.
+Lua has a set of reserved functions for metatables such as {\tt getmetatable()} and {\tt setmetatable()}. By analyzing these, we can further understand the behavior of metatables. We use these functions for our research in the project since we think metatables plays a key role in the language design of Lua. Meanwhile, more rules about metatables can be found in the Lua Reference Manual \cite{LRM}.
 
 \section{Tables}\label{sec: LuaTable}
-From Figure~\ref{fig:LuaExp}, we can see that there is an expression for table constructors, which create a new table as a value. Basically, there are many ways of telling the program how to deal with a table and also to specify the values in it. However, the purpose of the different syntax would all be the same: to assign a value to a key in the specific table.
+From Figure~\ref{fig:LuaExp}, we can see that there is an expression for table constructors, which creates a new table as a value. Basically, there are many ways of telling the program how to deal with a table and also to specify the values in it. However, the purpose of the different syntax would all be the same: to store a key-value pair in the specific table.
 
 Therefore, the basic syntax of tables is simple in Lua. Users can just assign a new empty table to a variable, assign a value to a variable in this table, or update some values in it, just like:
 
@@ -166,7 +166,7 @@ Also, you can create a table by using a set of expressions like:
 table = { x = 1; y = 2, z = 3 } 
 \end{verbatim}
 
-And this statement can be translated into a set of expressions; we will talk about this more in Section~\ref{sec:TranslateTabls}.
+And this statement can be translated into a set of expressions; we will treat this as a part of translation in Section~\ref{sec:TranslateTabls}.
 
 Tables in Lua are the primary data structure. Almost every type of data structure can be represented with tables in Lua in an efficient way, such as arrays, records or sets. One interesting thing is that arrays and lists are usually used as the basic data structure in other languages. We can easily implement these structures using Lua tables. However, we don't take this as necessary since tables are much more powerful than them.
 
@@ -177,7 +177,7 @@ The first instance we want to show is about arrays. We know that an array is mad
 \begin{verbatim}
 array = {}
 for i=1, 100 do
-array[i] = 0
+  array[i] = 0
 end
 \end{verbatim}
 
@@ -196,7 +196,7 @@ parent = {firstName = "Max", lastName = "Lin"}
 child = {firstName = "Mary"} 
 \end{verbatim}
 
-And we now have two tables. These tables are similar to objects because they share a similar structure. Now, we use metatables to model inheritance using a prototype-based approach~\cite{PIJS}. As we know, the child object inherits all the data from its parent. So when we index a key we will get back the value from the parent when this key is not available in the child. Here is the code:
+And we now have two tables. These tables are similar to objects because they share a similar structure. Now, we use metatables to model inheritance using a prototype-based approach~\cite{PIJS}. As we know, the child object inherits all the data from its parent. Therefore, when we miss a key from the child, we will get back the value from the parent. Here is the code:
 
 \begin{verbatim}
 setmetatable(child,{__index = parent}) 
