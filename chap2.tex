@@ -5,19 +5,17 @@
 \newcommand{\functiondef}[2]{\mbox{\tt function}~(\overline{#1_i})~#2~ {\tt end}}
 
 
-\chapter{Full Version Lua}
+\chapter{Full Version Lua}\label{FullLua}
 We introduce the syntax for the full version of Lua in this chapter. As mentioned previously, Lua is an extension programming language, and therefore its syntax is relatively simple. However, there are still several parts which can cause confusion in Lua.
 
 \section{Syntax in Lua}
-Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure. Every program of Lua can be thought as a block. A block is a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
+Lua is a small extension language~\cite{PIL} with many similarities to JavaScript in its structure. Every program of Lua can be thought as a {\tt block} -- a list of statements, which are executed sequentially. Return statements can only be used in the end of a block, although they are optional.
 
-%--------MODIFIED
 Next, we will discuss two important elements in Lua separately, which are expressions and statements.
 Lua splits statements and expressions.
 They are separated, but still partially independent. Although most programming languages allow expressions to be put in the code individually, Lua does not allow that. Expressions must be part of statements and cannot stand alone in a program. However, note that function application is considered both statements and expressions.
 
 Figure~\ref{fig:LuaExp} shows the complete list of Lua expressions, and Figure~\ref{fig:LuaStat} shows the available statements for Lua. We give a brief introduction about the important parts of Lua in the next section. Those parts include expressions, statements, functions, tables, and metatables. We will talk about how the full version of Lua may be desugared to our core language in Chapter~\ref{chp:luaTranslation}.
-%--------END
 
 \section{Expressions}
 As we mentioned above, expressions cannot be used individually. However, it still plays a key role in Lua since there are many evaluation rules for expressions. An expression evaluates to a value. We consider this as the main difference to statements, which might not produce a value.

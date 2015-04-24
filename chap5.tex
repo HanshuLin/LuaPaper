@@ -13,11 +13,7 @@ In this chapter, we discuss how FWLua works like Lua by showing how syntactic de
 
 There are several important parts we focus on in desugaring Lua. First of all, getting variables is taken into consideration. Secondly, Lua allows many different ways of representing variable updates and declarations in different conditions and scopes. We also consider functions because there are some different qualities for functions in the full Lua language. Tables, in addition, need to be discussed since they are the primary data structure with metamethods and metatables. Finally, we discuss how we may desugar control statements. 
 
-%--------MODIFIED
 Finally, we will discuss those parts in detail, along with examples, in the following sections. All the figures about desugaring below are not translated into FWLua completely, but can be finally translated by following the all the figures. The only reason doing this is to make the translation rules clearer to understand.
-%--------END
-
-
 
 \section{Variable select}
 Selecting variables is used for computations to get a user defined value. Generally speaking, getting variables in a common programming language is easy and straightforward: users simply write a variable as the key for getting its value. For example, the following expressions used in Lua would stand for ``getting a value'':
@@ -208,7 +204,7 @@ Now, we discuss details about functions in Lua.
 To capture other additional information about Lua functions, we translate every function in Lua to a table with fields for basic information about the function. To implement the scope, there are four arguments that must be taken into the consideration when we translate a function in Lua into FWLua: {\tt \_local} for variables in the local environment; {\tt \_arg} for storing the arguments of the function; {\tt \_outer} for the outer scope; and {\tt \_call} is a function to store the body of the function. There is an example in Appendix~\ref{app:function}.
 
 %------KEY------
-In the structure, we only bring 2 new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function application. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recursive function application.
+In the structure, we only bring two new keys in the table, which are argument and body, at the time when we declare a function. However, we keep the outer scope and local scope as the inner variable in the body function to decrease the complexity in translating function application. In translating function body, we will assign a table as the local scope and will record the outer scope and argument. In other words, the information about outer scope and argument names should be recorded along with local variables in the local scope. By doing this, we can easily roll back to find further outer scopes by a recursive function application.
 
 Finally, one of the key points in the function application is to distinguish the scope of the current variable, for example:
 

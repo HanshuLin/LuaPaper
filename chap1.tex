@@ -1,19 +1,26 @@
 \chapter{Introduction of Lua}
-Lua is an extension programming language. It is designed to support general procedural programming with data description facilities~\cite{EEL}. Since it is designed to be an embedded scripting language, it has a concise syntax. However, Lua is also powerful, fast, and lightweight, making it useful as a general purpose scripting language.
+%------MODOFIED
+Lua is a scripting programming language. It is designed to support general procedural programming with data description facilities~\cite{EEL}. Since it is designed to be an embedded scripting language, it has a concise syntax. However, Lua is powerful and fast, making it useful as a general purpose scripting language.
+%------------------------
+Our core goal is to develop a set of formal semantics for a minimal version of Lua. This set of semantics allows us to formally reason about properties of the Lua language without becoming needlessly mired in unimportant aspects of the full Lua language. In other words, we are attempting to remove those syntactic features we think are less important and thus keep the core features of Lua, facilitating future research into the language.
 
-Our core goal is to develop a formal semantics for a minimal version of Lua. This semantics allows us to formally reason about properties of the Lua language without becoming needlessly mired in unimportant aspects of the full Lua language. In other words, we are attempting to remove those syntactic features we think are less important and thus to keep the core features of Lua, facilitating future research into the language.
+In our research on Lua~\cite{LRM}, we have identified several features as central to Lua's character. First of all, Lua supports first-class functions. It provides syntax for functions to fulfill specific tasks from users. In addition, Lua's design is centered on tables. Tables are the primary data structure in Lua since they are lightweight, powerful, and can present many other data structures when combined with functions. Furthermore, Lua has a special feature named ``metatables'', which are reserved tables with a set of functions to control the behaviors of tables in Lua. All of these features make Lua different from other languages, and that is the reason why we identify them as the core features of Lua.
 
+%-------ADD
+In this paper, we first introduce the background of Lua in this chapter. We will also introduce the syntax of Lua, and whose features we think are very important to Lua in Chapter~\ref{FullLua}. Then, we will discuss about the syntax and operational semantics of Featherweight Lua -- an exquisite language we create for further research of Lua -- in Chapter~\ref{chp: FWLua} and Chapter~\ref{chp: syntax and semantic}. What is more, in case of leaning Lua, we show how we translate Lua to Featherweight Lua in Chapter~\ref{chp:luaTranslation}. Finally, we will give a brief introduction about our implementation in Chapter~\ref{chp: implementation}, and discuss about conclusion and future work in Chapter~\ref{chp: conclusion}.
 
-In our research on Lua~\cite{LRM}, we have identified several features as central to Lua's character. First of all, Lua supports first-class functions. It provides syntax for functions to fulfill specific tasks from users. In addition, Lua's design is centered on tables. Tables are the primary data structure in Lua since they are lightweight, powerful, and can present many other data structures when combined with functions. Besides, Lua has a special feature named ``metatables'', which are reserved tables with a set of functions to control the behaviors of tables in Lua. All of these features make Lua different from other languages, and that is the reason why we identify them as the core features of Lua.
 
 \section{History of Lua}
-At the beginning, there was a programming called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. 
+Before talking about Lua, we give a brief introduction about the history of Lua to elaborate the reason why we think Lua is interesting and popular, and why we think it is valuable to research on Lua.
+%----------------
 
-In 1993, there were already some lightweight languages, but none of them provided data description, which means variables in these languages can hardly define a data structure such like tables or records. Therefore, Lua was created without the need of type declarations to satisfy this requirement~\cite{EOL}.
-
-With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes including the simplification of the semantics for table constructors,
-the concept of ``fallbacks''---a bunch of programmer defined functions that are called whenever Lua does not know what to do next, and so on. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods, and developers using Lua 3 can create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, The {\tt for} loop statement was introduced in Lua. 
-Also, in February 2002, Lua 4.1 introduced metatables and metamethods, as the replacement for tag methods and fallbacks~\cite{TEL}.
+At the beginning of the history, there was a programming language called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. 
+%---modified
+In 1993, there were already some lightweight languages, but none of them provided data description; variables in these languages were unable to define a data of key-value pair, such as tables or records. Therefore, Lua was created, without the need of type declarations, to satisfy this need at the time~\cite{EOL}.
+%-------------
+With more and more users leveraging Lua in their work, the demand for better performance increased. Lua version 2 was released in February 1995. It brought many important changes such as the simplification of the semantics for table constructors,
+the concept of ``fallbacks''---a set of programmer defined functions that are called whenever Lua does not know what to do next, and some other important features. Version 3 of Lua was published in July 1997. In this version, the concept of fallbacks was replaced with tag methods. Because of this, developers using Lua 3 can now create their own tags, and even associate tables and userdata to the tags to make them have their own unique behaviors. Then, version 4 of Lua was released in November 2000. Besides a set of new APIs, the {\tt for} loop statement was introduced in Lua. 
+Also, in February 2002, Lua 4.1 introduced {\tt metatables} and {\tt metamethods} as the replacement for tag methods and fallbacks~\cite{TEL}.
 
 \section{Where to use Lua}
 Lua is often embedded in many applications to fulfill some simple and small tasks due to its qualities. Usually, Lua is used to add extensions in large applications that would be hard to change. Also, Lua can be used in many programs in different domains that need extensions to make them flexible, especially for game developers and UI designers.~\cite{AIL}. 
@@ -23,6 +30,9 @@ For instance, Lua is used to create user interface add-ons in the popular online
 In the aspect of commodities, Lua has been embedded in many devices, including the CHDK Lua interface for Canon cameras~\cite{CLFL}, UI designs for Photoshop Lightroom~\cite{APLL}, and Logitech keyboards. Lua is also used for network security applications in Cisco~\cite{CISCO} and for extensions and add-ons in the MySQL Workbench. CloudFlare, a content delivery network using Nginx, is trying further improve its performance using Lua because of the benefits of Lua~\cite{NPL} and the speed of the LuaJIT engine~\cite{LJT}.
 
 \section{Interesting features of Lua}
+%---modi
+Analyzing the right features is always important for learning a programming language. In this section, we briefly introduce several features we think are interesting of important in Lua.
+%----------
 As an embedded language, there are several characters making Lua unique. 
 Actually these mechanisms are all indispensable in Lua, beside basic data types and data structures.
 
@@ -38,7 +48,7 @@ We will specifically discuss them in each chapter.
 \section{Lua and JavaScript}
 Lua is similar in its design to the JavaScript programming language. Since JavaScript is widely used in client-side scripting, it has received significantly more attention than Lua, but many of the challenges are very similar.
 
-One of the core inspirations for this work is Featherweight JavaScript (FWJS)~\cite{FWJS}, which also develops a core subset for a much larger language.
+One of the inspirations for this work was Featherweight JavaScript (FWJS)~\cite{FWJS}, which also develops a core subset for a much larger language.
 JavaScript is similar to Lua in that it also has first-class functions, but it differs in that it has a prototype-based object system. Lua's combination of tables and metatables provide similar functionality, but with a noticeably different feel.
 
 Guha et al.~\cite{EOJS} show an alternate approach for reducing JavaScript to a core calculus. The authors also give several models, desugaring processes, a small-step operational semantics, and an implementation.

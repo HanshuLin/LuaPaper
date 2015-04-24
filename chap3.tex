@@ -2,7 +2,7 @@
 \newcommand{\semanticFullRaw}[4]{{#1},{#2} \Downarrow {#3},{#4}}
 \newcommand{\semanticFull}[4]{{#1},{#2} \Downarrow {#3}, {#4}}
 
-\chapter{Featherweight Lua}
+\chapter{Featherweight Lua}\label{chp: FWLua}
 Although Lua has a minimal syntax compared to most other programming languages, it is still too complex for formal reasoning. To make it simpler for reading and analyzing, we further simplify the syntax from the full version Lua. We call the new, simplified language {\it Featherweight Lua} (FWLua). In FWLua, we remove unnecessary syntax and reduce the language to its essential core.
 
 In this chapter, we first introduce how we deal with several primary parts in Lua --- expressions and statements. Then, we are going to talk about functions and metatables, which are both key elements of Lua, in more detail in the chapter. Meanwhile, we give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
@@ -66,7 +66,7 @@ statements in Lua include assignment, control structures, function calls, and va
 Our strategy for simplifying statements is to classify them into some syntactic groups, and then choose a basic syntactic format for each of them.
 We also remove blocks from our syntax since we can desugar sequences of statements easily, and implement block using lambda function.
 
-We first discuss assignment statements. Apparently, every assignment statement will change the store since it assigns a value to a variable. Also, Lua is built to be a dynamic typed programming language, which means type declarations are not needed in assignment statements. Due to this factor, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements. For instance:
+We first discuss assignment statements. Every assignment statement will change the store since it assigns a value to a variable. Also, Lua is built to be a dynamic typed programming language, which means type declarations are not needed in assignment statements. Due to this factor, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements. For instance:
 
 \newpage
 \begin{verbatim}
