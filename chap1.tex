@@ -11,7 +11,7 @@ In this paper, we first introduce the background of Lua in this chapter. We will
 
 
 \section{History of Lua}
-Before talking about Lua, we give a brief introduction about the history of Lua to elaborate the reason why we think Lua is interesting and popular, and why we think it is valuable to research on Lua.
+Before talking about Lua, we give a brief introduction about the history of Lua to elaborate on the reason why we think Lua is interesting and valuable to research.
 %----------------
 
 At the beginning of the history, there was a programming language called ``Sol'', which was created for fulfilling some mundane tasks in a Brazilian oil company called PETROBRAS. 
@@ -57,6 +57,11 @@ Guha et al.~\cite{EOJS} show an alternate approach for reducing JavaScript to a 
 Operational semantics~\cite{AIOS} are a set of rules defining the behavior of a language.
 These rules are useful for verifying certain important properties for a programming language, such as security. Operational semantics can be classified into two different kinds: \emph{small-step semantics} and \emph{big-step semantics}. The former one describes each individual step in the computation, while the latter one shows how the final result of one statement is obtained after being fully executed. In this paper, we show the big-step semantics of Featherweight Lua according to the research on Lua. Generally speaking, writing operational semantics is more like programming in an abstract way. To help validate and experiment with our approach, we also implement an interpreter in Haskell that closely follows the semantics we have developed.
 
+\section{Featherweight Language}
+A \emph{Featherweight Programming Language} is commonly used to research a programming language.
+This is a valuable method if the programming language an individual wants to research is so complex. For instance, Thomas H. Austin and etc. have pointed out that ``The full JavaScript language is quite complex and difficult to reason about, and is a difficult foundation for proving formal security guarantee''~\cite{FWJS}, and they then choose to design Featherweight JavaScript and use it to research JavaScript in the aspects of security and information flows. This proves several advantages that motivate us to establish a simpler featherweight programming language in the research of Lua.
+
+Generally speaking, featherweight languages are very simple in both syntax and semantics. However, they all have to remain essence from target languages in case of formal reasoning all features of original language. In the previous featherweight programming languages, Atsushi Igarashi shows that there are some main features still remained in Featherweight Java, including classes, methods, fields, dynamic typecasts, and inheritance~\cite{FWJV}. In addition, Jeremy Siek also has introduced Featherweight C programming language with stack-based allocation functions, pointers, and heap allocation remained~\cite{FWC}. All of these previous featherweight language are made for simplifying target language in case of research, and they provide complete feature modeling from target language.
 
 
 

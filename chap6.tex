@@ -5,7 +5,8 @@ Haskell provides a static type system, a fast runtime speed; since it treats com
 
 Haskell also has simple memory allocation due to the research~\cite{PIH}. As the trade off, Haskell does not allow mutable variables, and this would obviously differ in building interpreter between object-oriented language and functional language.
 
-In this chapter, we discuss the structure of our interpreter, and introduce how each component works in the structure.
+%--MODI
+In this chapter, we discuss the structure of our interpreter, and introduce how each component works in the structure. In addition, Appendix ~\ref{app:implementation} shows an instance program using FWLua and the result interpreted by our implementation.
 
 \section{Structure}
 According to the reference~\cite{WCAI}, we want our interpreter to be loosely-coupled~\cite{looseC}. This term means that the program can be treated as several components. In addition, each component in the program is totally independent, with little or no shared information or definitions with other parts. This term was introduced in case of keeping program adaptive, especially in designing compiler of interpreter. In other words, a loosely-coupled interpreter can handle different kinds programming language by only changing specific key components in it.

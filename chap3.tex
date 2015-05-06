@@ -3,7 +3,26 @@
 \newcommand{\semanticFull}[4]{{#1},{#2} \Downarrow {#3}, {#4}}
 
 \chapter{Featherweight Lua}\label{chp: FWLua}
-Although Lua has a minimal syntax compared to most other programming languages, it is still too complex for formal reasoning. To make it simpler for reading and analyzing, we further simplify the syntax from the full version Lua. We call the new, simplified language {\it Featherweight Lua} (FWLua). In FWLua, we remove unnecessary syntax and reduce the language to its essential core.
+%----MODI
+Although Lua has a minimal syntax compared to most other programming languages, it is still too complex for formal reasoning. For instance:
+
+\begin{verbatim}
+x = 54
+function foo(x)
+  local x = 18
+  print(x)
+end;
+
+foo(36); --what does this print?
+\end{verbatim}
+
+In this example, it is not immediately obvious whether the local variable,
+the global variable, or the parameter will print.There are also some other problems like this, making Lua complex for analyzing. 
+
+Another instance will be adding information flow controls to Lua. In building these, we may think about whether our additions to the language present secrets from leaking. There might be some functions about this issue, for example, {\tt makeSecret(e)} or something like this. While using FWLua, we only need to reason about FWlua.
+%--------
+
+Therefore, we further simplify the syntax from the full version Lua. We call the new, simplified language {\it Featherweight Lua} (FWLua). In FWLua, we remove unnecessary syntax and reduce the language to its essential.
 
 In this chapter, we first introduce how we deal with several primary parts in Lua --- expressions and statements. Then, we are going to talk about functions and metatables, which are both key elements of Lua, in more detail in the chapter. Meanwhile, we give the full syntax and evaluation rules after all the elements in FWLua have been specifically introduced.
 
@@ -68,7 +87,6 @@ We also remove blocks from our syntax since we can desugar sequences of statemen
 
 We first discuss assignment statements. Every assignment statement will change the store since it assigns a value to a variable. Also, Lua is built to be a dynamic typed programming language, which means type declarations are not needed in assignment statements. Due to this factor, we can merge all types of assignment statements into one single form. According to the original syntax, there might be some differences in local assignment statements. For instance:
 
-\newpage
 \begin{verbatim}
 a = 3; --A single assignment statement
 b, c, d = 1, 2, 3; --Destructuring assignment
@@ -80,6 +98,7 @@ In Chapter~\ref{chp:luaTranslation} we review the desugaring process in more dep
 
 Lua also features a large number of control structures. However, these can be represented with functions, following patterns established for the lambda calculus~\cite{TAPL}. For instance, the following are some different kinds of control structures in Lua:
 
+\newpage
 \begin{verbatim}
 x = 0
 while x ~= 10 do --A while loop
@@ -113,6 +132,11 @@ a = b = 10; --Multiple statements
 \end{verbatim}
 
 Lua does not allow constants or variables as stand-alone statements, and chained assignments are not supported in Lua. While these are departures from Lua, we feel that they are minor discrepancies between the languages.
+
+%-----MODI
+Not being a proper subset of Lua may also cause a risk: the translated code in FWLua might not run in Lua. To avoid this issue,  our implementation rules carefully produce code that is valid for both FWLua and Lua, though it may look strange.
+Also,  another issue is that users basically have to understand ``another programming language'' when they are researching Lua using our way. Therefore, we try to make FWLua as simple as possible, in case of being valuable for research on Lua.
+%--------------
 
 \section{Functions}
 Functions are used to complete a set of computations and return a value. To define a function in Lua, each of the following statements can be used:
@@ -171,12 +195,12 @@ bar() --will print 42
 
 The above example shows that Lua uses static or lexical scoping. Lexical scoping means that a stack containing variables in one's outer scope is defined once a function or a block is declared. On the other hand, with dynamic scoping, the compiler goes throughout the whole scope link, and then locates the variable that is being called. The above example is testing Lua's scoping mechanism. Once the function {\tt foo()} is invoked in function {\tt bar()}, Lua finds the value of variable {\tt x} from the stack of function {\tt foo()}, and then find its outer scope. It means the scope in Lua is static and immutable. That is the reason why we also call this ``static scope''. In contrast, if Lua used dynamic scoping, the above example would print 100.
 
-%------MODEIFIED-------
+
 \subsection{Closures}
 Closures in a programming language enable functions to access variables in their outer scope. Closures is as important as scoping. It is commonly discussed together with scoping.
 
 For a concrete understanding of closures, consider the following example:
-%------END-------
+
 \begin{verbatim}
 function foo()
   local x = 0;
@@ -262,6 +286,9 @@ Metamethods are reserved functions with a set of special names in a metatable. T
 Furthermore, there are 4 different kinds of metamethods in Lua~\cite{PIL}: arithmetic, relational, library-defined, and table-access. According to their names, each of them carries functions toward different fields. The arithmetic and relational metamethods are mostly responsible for binary operations, and the other two are often for tables and reserved functions. Generally, values in Lua can only take arithmetic and relational metamethods, since what they defined would not change the normal behavior of the programming language. On the other hand, table-access metamethods will possibly change the behavior of tables for several situations.
 
 Figure \ref{fig:metatables} introduces several metamethods we think are important for the research of Lua.
+%----MODI
+In this figure, the name of reserved functions are shown at the left hand side, while the information flows about specific functions are shown at the right hand side. Additionally, information flow means what type of value this function will take and result -- the last word of type in each equation shows its result, and others will show its arguments.
+%-------------
 
 
 % -------------------------------[FW2.1][METATABLES]-------------------------------
